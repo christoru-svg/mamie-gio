@@ -1,0 +1,1711 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Frigo sans ouvrir</title>
+<meta name="description" content="Ton frigo, sans l'ouvrir : stock, dates de péremption et liste de courses.">
+<meta name="theme-color" content="#fafaf8" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#121212" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Frigo">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}</style>
+</head>
+<body>
+<style>
+/* Charte v3 (réf. app de tâches) : fond blanc cassé, gros titres noirs + surtitre en capitales,
+   lignes sans cadre avec rond à cocher, pastilles pastel, barre d'onglets en bas, bouton + vert.
+   Couleurs de rangement : Frigo bleu, Congélo lilas, Placard gris. Couleurs de date : rose = urgent,
+   jaune = bientôt, vert = tranquille. */
+:root{
+  --bg:#fafaf8; --surface:#ffffff; --ink:#111111; --muted:#6e6e6e; --soft:#5f5f5f; --line:#ececea; --ring:#dcdcd8;
+  --black:#111111; --black-ink:#ffffff;
+  --hero-a:#ffd9e0; --hero-b:#ffe6d2; --hero-c:#fff3c7; --hero-ink:#2a1a1d; --hero-soft:#5a3b41; --hero-accent:#c02a49; --hero-chip:rgba(255,255,255,.7);
+  --calm-a:#d6f5e3; --calm-b:#dff3f6; --calm-c:#e5ecfd;
+  --green:#34d27b; --green-ink:#ffffff; --green-bg:#e3f8ec; --green-fg:#16733f;
+  --blue-bg:#e3f2fc; --blue-fg:#1d6aa3;
+  --lilac-bg:#f2e9fd; --lilac-fg:#7b3dbf;
+  --pink-bg:#fde7ea; --pink-fg:#bd2846;
+  --yellow-bg:#fdf3d4; --yellow-fg:#855800;
+  --grey-bg:#eeeeec; --grey-fg:#575757;
+  --font:-apple-system,"SF Pro Text","Figtree",system-ui,"Segoe UI",Roboto,sans-serif;
+  --font-display:-apple-system,"SF Pro Display","Figtree",system-ui,"Segoe UI",Roboto,sans-serif;
+  --nav-h:68px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#121212; --surface:#1c1c1c; --ink:#f4f4f2; --muted:#8f8f8f; --soft:#b5b5b5; --line:#262626; --ring:#3a3a3a;
+  --black:#f4f4f2; --black-ink:#111111;
+  --hero-a:#4a2530; --hero-b:#4a3224; --hero-c:#433a1c; --hero-ink:#fbeef0; --hero-soft:#e2c3c9; --hero-accent:#ff8aa0; --hero-chip:rgba(0,0,0,.25);
+  --calm-a:#173a2a; --calm-b:#173538; --calm-c:#1c2645;
+  --green:#34d27b; --green-ink:#0b2416; --green-bg:#173324; --green-fg:#5fe39a;
+  --blue-bg:#14293a; --blue-fg:#6cc3f5; --lilac-bg:#2a1d3a; --lilac-fg:#c79af2;
+  --pink-bg:#3a1c22; --pink-fg:#ff8aa0; --yellow-bg:#352c10; --yellow-fg:#f2c74a; --grey-bg:#2a2a2a; --grey-fg:#b0b0b0;
+  color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#121212; --surface:#1c1c1c; --ink:#f4f4f2; --muted:#8f8f8f; --soft:#b5b5b5; --line:#262626; --ring:#3a3a3a;
+  --black:#f4f4f2; --black-ink:#111111;
+  --hero-a:#4a2530; --hero-b:#4a3224; --hero-c:#433a1c; --hero-ink:#fbeef0; --hero-soft:#e2c3c9; --hero-accent:#ff8aa0; --hero-chip:rgba(0,0,0,.25);
+  --calm-a:#173a2a; --calm-b:#173538; --calm-c:#1c2645;
+  --green:#34d27b; --green-ink:#0b2416; --green-bg:#173324; --green-fg:#5fe39a;
+  --blue-bg:#14293a; --blue-fg:#6cc3f5; --lilac-bg:#2a1d3a; --lilac-fg:#c79af2;
+  --pink-bg:#3a1c22; --pink-fg:#ff8aa0; --yellow-bg:#352c10; --yellow-fg:#f2c74a; --grey-bg:#2a2a2a; --grey-fg:#b0b0b0;
+  color-scheme:dark }
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:17px;line-height:1.4;-webkit-font-smoothing:antialiased}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--blue-fg);outline-offset:2px}
+.wrap{max-width:520px;margin:0 auto;padding-inline:20px;padding-block:28px calc(var(--nav-h) + 110px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:28px}
+
+/* headers */
+.eyebrow{font-size:.8rem;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--soft);margin:0}
+.phead{position:relative;padding-right:0}
+.phead .theme-btn{display:none}
+.kebab-btn{position:absolute;top:0;right:0;width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--ink);display:grid;place-items:center;padding:0}
+.kebab-btn[aria-expanded="true"]{background:var(--grey-bg)}
+.kmenu{position:fixed;z-index:35;min-width:250px;max-width:calc(100% - 24px);background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:18px;padding:6px;box-shadow:0 14px 40px rgba(0,0,0,.18);display:flex;flex-direction:column}
+.kmenu button{display:flex;align-items:center;gap:12px;border:0;background:transparent;color:var(--ink);font:inherit;font-size:1rem;font-weight:600;text-align:left;padding:12px;min-height:48px;border-radius:12px;width:100%}
+.kmenu button:hover,.kmenu button:focus-visible{background:var(--grey-bg);outline:none}
+.kmenu button>svg{width:22px;height:22px;flex:none;color:var(--soft)}
+.kmenu .klabel{flex:1}
+.soon-tag{font-size:.7rem;font-weight:700;letter-spacing:.03em;text-transform:uppercase;background:var(--yellow-bg);color:var(--yellow-fg);border-radius:999px;padding:4px 8px}
+.ksep{height:1px;background:var(--line);margin:4px 8px}
+.kswitch{width:40px;height:24px;border-radius:999px;background:var(--ring);position:relative;flex:none;transition:background .2s}
+.kswitch::after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:transform .2s}
+[aria-checked="true"] .kswitch{background:var(--green)}
+[aria-checked="true"] .kswitch::after{transform:translateX(16px)}
+.soon-card{background:var(--surface);border:1px solid var(--line);border-radius:24px;padding:22px;display:flex;flex-direction:column;gap:14px;align-items:flex-start}
+.soon-art{width:100%;height:150px;border-radius:18px;background:var(--yellow-bg);display:grid;place-items:center;font-size:64px;line-height:1}
+.soon-card p{margin:0;color:var(--soft);font-size:1rem;line-height:1.5}
+.help-btn{position:absolute;top:0;right:52px;width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--ink);display:grid;place-items:center;padding:0;font-weight:800;font-size:1.1rem;font-family:inherit}
+.theme-btn{position:absolute;top:0;right:0;width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--ink);display:grid;place-items:center;padding:0}
+.theme-btn svg{width:20px;height:20px}
+h1{font-family:var(--font-display);font-weight:800;font-size:2.3rem;letter-spacing:-.025em;line-height:1.05;margin:4px 0 0;text-wrap:balance}
+#today{white-space:nowrap;font-size:min(2.3rem,8.5vw)}
+.section-h{display:flex;align-items:center;gap:10px}
+.section-h .eyebrow{color:var(--soft)}
+.bubble{display:inline-grid;place-items:center;min-width:24px;height:24px;padding:0 7px;border-radius:999px;background:var(--grey-bg);color:var(--grey-fg);font-size:.8rem;font-weight:700;font-variant-numeric:tabular-nums}
+
+/* black summary pill */
+.hero{background:linear-gradient(125deg,var(--hero-a) 0%,var(--hero-b) 55%,var(--hero-c) 100%);color:var(--hero-ink);border-radius:28px;padding:20px 22px;display:flex;flex-direction:column;gap:8px}
+.hero-top{display:flex;align-items:center;gap:12px;font-weight:700;font-size:1.08rem}
+.hero-top svg{color:var(--hero-accent)}
+.hero-top .n{margin-left:auto;font-variant-numeric:tabular-nums;font-weight:700;min-width:30px;height:30px;padding:0 9px;border-radius:999px;display:grid;place-items:center;background:var(--hero-chip);color:var(--hero-accent)}
+.hero p{margin:0;color:var(--hero-soft);font-size:.98rem}
+.hero.mini{padding:12px 16px;border-radius:18px}
+.hero-toggle{border:0;background:transparent;color:inherit;font:inherit;font-weight:700;font-size:1.08rem;text-align:left;width:100%;padding:0;margin:0;cursor:pointer;min-height:32px}
+.hero.mini .hero-toggle{font-size:.98rem}
+.hero-toggle .hchev{flex:none;color:var(--hero-soft);transition:transform .2s}
+.hero-toggle[aria-expanded="true"] .hchev{transform:rotate(180deg)}
+.hero-toggle .n{margin-left:auto}
+.hero-body{display:flex;flex-direction:column;gap:8px}
+.hnext{border:0;background:var(--hero-chip);color:inherit;font:inherit;font-size:.95rem;border-radius:14px;padding:10px 12px;display:flex;align-items:center;justify-content:space-between;gap:10px;text-align:left;width:100%}
+.hnext .hdue{flex:none;font-weight:600;font-size:.88rem;color:var(--hero-accent)}
+.hero .hm-s{font-weight:500;font-size:.86rem;color:var(--hero-soft);margin-left:auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.hero .hm-t{white-space:nowrap}
+.hero.mini .hero-top{font-size:.98rem;gap:8px;min-width:0}
+.hero.mini .hero-top svg{flex:none;color:var(--hero-accent)}
+.hero.mini .hm-t{flex:none;white-space:nowrap}
+.hero.mini .hm-s{font-weight:500;font-size:.86rem;color:var(--hero-soft);margin-left:auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+/* custom date picker */
+.dp-native{display:none!important}
+.dp-btn{width:100%;min-width:0;box-sizing:border-box;padding:10px 12px;border:1.5px solid var(--line);border-radius:12px;background:var(--surface);color:var(--ink);font:inherit;font-size:1rem;font-weight:500;text-align:left;display:flex;align-items:center;gap:8px;min-height:44px}
+.dp-btn svg{width:18px;height:18px;flex:none;color:var(--soft)}
+.dp-btn .dp-v{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dp-btn.empty .dp-v{color:var(--muted)}
+.dp{position:fixed;inset:0;z-index:45;background:rgba(0,0,0,.4);display:flex;align-items:flex-end;justify-content:center}
+@media (min-width:600px){.dp{align-items:center}}
+.dp-card{background:var(--surface);color:var(--ink);width:100%;max-width:420px;box-sizing:border-box;border-radius:28px 28px 0 0;padding:18px 18px calc(18px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:12px}
+@media (min-width:600px){.dp-card{border-radius:28px}}
+.dp-head{display:flex;justify-content:space-between;align-items:center}
+.dp-head h2{margin:0;font-size:1.15rem}
+.dp-x{border:0;background:var(--grey-bg);color:var(--soft);width:40px;height:40px;border-radius:50%;font-size:.95rem;padding:0}
+.dp-quick{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin:0 -18px;padding:0 18px}
+.dp-quick::-webkit-scrollbar{display:none}
+.dp-quick button{flex:none;border:0;border-radius:999px;background:var(--blue-bg);color:var(--blue-fg);padding:8px 14px;font:inherit;font-size:.88rem;font-weight:600;min-height:38px}
+.dp-nav{display:flex;align-items:center;justify-content:space-between}
+.dp-nav span{font-weight:700;text-transform:capitalize}
+.dp-my{border:0;background:transparent;color:var(--ink);font:inherit;font-size:1rem;font-weight:700;text-transform:capitalize;padding:8px 14px;min-height:40px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;gap:8px;white-space:nowrap;flex:0 1 auto;min-width:0;margin:0 8px;-webkit-tap-highlight-color:transparent}
+.dp-nav button[data-dpm]{flex:none}
+.dp-my::after{content:"";flex:none;width:7px;height:7px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:translateY(-2px) rotate(45deg);transition:transform .2s}
+.ymode .dp-my{background:var(--grey-bg)}
+.ymode .dp-my::after{transform:translateY(2px) rotate(-135deg)}
+.ymode .dp-wd{visibility:hidden}
+@media (hover:hover){.dp-my:hover{background:var(--grey-bg)}}
+.dp-my:focus{outline:none}
+.dp-my:focus-visible{box-shadow:0 0 0 2px var(--green)}
+.dp-nav button[data-dpm]{border:0;background:var(--grey-bg);color:var(--ink);width:40px;height:40px;border-radius:50%;font-size:1.3rem;line-height:1;padding:0}
+.dp-wd,.dp-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center}
+.dp-grid{height:272px;grid-template-rows:repeat(6,42px)}
+.dp-grid.years{grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(5,1fr);gap:8px}
+.dp-year{border:0;background:var(--grey-bg);color:var(--ink);font:inherit;font-size:1rem;font-weight:700;border-radius:14px;padding:0}
+.dp-year.now{box-shadow:inset 0 0 0 1.5px var(--green)}
+.dp-year.sel{background:var(--green);color:var(--green-ink);box-shadow:none}
+.dp-wd span{font-size:.75rem;font-weight:700;color:var(--muted)}
+.dp-day{border:0;background:transparent;color:var(--ink);font:inherit;font-size:.98rem;font-weight:600;height:42px;border-radius:999px;padding:0}
+@media (hover:hover){.dp-day:hover{background:var(--grey-bg)}}
+.dp-day.today{box-shadow:inset 0 0 0 1.5px var(--green)}
+.dp-day.sel,.dp-day.sel:hover{background:var(--green);color:var(--green-ink);box-shadow:none}
+.empty-add{width:100%;min-height:max(260px,42vh);border:2px dashed var(--ring);border-radius:28px;background:var(--surface);color:var(--ink);font:inherit;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:24px;transition:background .15s,border-color .15s,transform .1s}
+.empty-add:hover,.empty-add:focus-visible{border-color:var(--green);background:var(--green-bg);outline:none}
+.empty-add:active{transform:scale(.99)}
+.ea-ic{width:72px;height:72px;border-radius:50%;background:var(--green);color:var(--green-ink);display:grid;place-items:center;margin-bottom:6px}
+.ea-ic svg{width:32px;height:32px}
+.ea-t{font-size:1.2rem;font-weight:800}
+.ea-s{font-size:.95rem;color:var(--muted)}
+.hero-list{list-style:none;margin:4px 0 0;padding:0;display:flex;flex-direction:column;gap:6px}
+.hero-list li{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:center;background:var(--hero-chip);border-radius:16px;padding:6px 6px 6px 10px}
+.hero-list .check{margin:0;border-color:var(--hero-accent);opacity:.85}
+.hero-list li.done .check{background:var(--green);border-color:var(--green);opacity:1}
+.hero-list li.done .hname{text-decoration:line-through;opacity:.6}
+.hgo{display:flex;align-items:center;gap:8px;border:0;background:transparent;color:inherit;text-align:left;padding:8px 6px;min-height:40px;border-radius:12px;min-width:0}
+.hgo .hname{font-weight:600;flex:1;min-width:0;overflow-wrap:anywhere;line-height:1.25}
+.hgo .hdue{font-size:.85rem;font-weight:600;color:var(--hero-accent);white-space:nowrap}
+.hgo svg{flex:none;opacity:.55}
+.row.flash{animation:flash 1.8s ease-out}
+@keyframes flash{0%,35%{background:var(--yellow-bg);box-shadow:0 0 0 8px var(--yellow-bg)}100%{background:transparent;box-shadow:0 0 0 8px transparent}}
+.row{border-radius:12px}
+.hero.calm{--hero-a:var(--calm-a);--hero-b:var(--calm-b);--hero-c:var(--calm-c);--hero-accent:var(--green-fg)}
+
+/* zone filters */
+.filters{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);display:flex;gap:8px;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none;-webkit-overflow-scrolling:touch;scroll-padding:0 20px;margin:-10px -20px -14px;padding:10px 20px 12px}
+.filters::-webkit-scrollbar{display:none}
+.filters .fchip{flex:none;padding:8px 16px;font-size:.9rem}
+.fchip{display:inline-flex;align-items:center;justify-content:center;gap:5px;border:0;border-radius:999px;padding:8px 4px;font-weight:600;font-size:.88rem;background:var(--grey-bg);color:var(--soft);min-height:42px;min-width:0;white-space:nowrap}
+.fchip .c{font-variant-numeric:tabular-nums;opacity:.7;font-weight:500}
+.fchip.f-all{background:linear-gradient(110deg,var(--blue-bg),var(--lilac-bg));color:var(--soft)}
+.fchip[aria-pressed="true"].f-all{background:linear-gradient(110deg,var(--blue-fg),var(--lilac-fg));color:var(--bg)}
+.fchip.f-frigo{background:var(--blue-bg);color:var(--blue-fg)}
+.fchip.f-congelo{background:var(--lilac-bg);color:var(--lilac-fg)}
+.fchip.f-placard{background:var(--grey-bg);color:var(--grey-fg)}
+.fchip.f-confort{background:var(--pink-bg);color:var(--pink-fg)}
+/* search */
+.search{display:flex;align-items:center;gap:8px;background:var(--surface);border:1.5px solid var(--line);border-radius:999px;padding:0 6px 0 14px;min-height:48px;margin-top:-12px}
+#view-stock .phead{padding-right:56px}
+.search-btn{position:absolute;top:0;right:0;width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--ink);display:grid;place-items:center;padding:0}
+.search-btn svg{width:20px;height:20px}
+.search-btn[aria-expanded="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.search:focus-within{border-color:var(--ring)}
+.search svg{width:18px;height:18px;flex:none;color:var(--muted)}
+.search input{flex:1;min-width:0;border:0;background:transparent;color:var(--ink);font:inherit;font-size:16px;padding:12px 0;outline:none}
+.search input::-webkit-search-cancel-button{display:none}
+.search button{border:0;background:var(--grey-bg);color:var(--soft);width:44px;height:44px;border-radius:50%;flex:none;padding:0;font-size:.95rem;margin-right:-4px}
+.fsep{flex:none;width:2px;align-self:stretch;margin:8px 2px;background:var(--ring);border-radius:2px}
+.fheart{width:14px;height:14px;flex:none}
+.conf-act{flex-wrap:wrap}
+.conf-dirty{background:var(--yellow-bg);color:var(--ink);border-radius:16px;padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+.conf-dirty p{margin:0;font-weight:600}
+.shop-secs{display:flex;flex-direction:column;gap:22px}
+.ctag{background:var(--pink-bg);color:var(--pink-fg);border-radius:999px;padding:2px 9px;font-size:.78rem;font-weight:700}
+.sheet label.chk{flex-direction:row;align-items:center;gap:10px;font-size:.95rem;color:var(--ink);min-height:44px}
+.sheet label.chk input,.fields label.chk input{width:22px;height:22px;padding:0;flex:none;accent-color:var(--pink-fg)}
+.fields label.chk{display:flex;align-items:center;gap:8px;font-size:.88rem;font-weight:600;color:var(--ink)}
+.ed-note{margin:-4px 0 0;font-size:.85rem;color:var(--muted)}
+/* swipe hint (shown once) */
+.swipe.hint{overflow:hidden}
+.swipe.hint>.row{animation:swhint 1.6s ease-in-out}
+.swipe.hint .trash{opacity:1}
+@keyframes swhint{0%{transform:none}30%,62%{transform:translateX(-76px)}100%{transform:none}}
+@media (prefers-reduced-motion:reduce){.swipe.hint>.row{animation:none}}
+.fchip.f-autre{background:var(--yellow-bg);color:var(--yellow-fg)}
+.fchip[aria-pressed="true"].f-autre{background:var(--yellow-fg);color:var(--bg)}
+.fchip[aria-pressed="true"].f-frigo{background:var(--blue-fg);color:var(--bg)}
+.fchip[aria-pressed="true"].f-congelo{background:var(--lilac-fg);color:var(--bg)}
+.fchip[aria-pressed="true"].f-placard{background:var(--grey-fg);color:var(--bg)}
+.fchip[aria-pressed="true"].f-confort{background:var(--pink-fg);color:var(--bg)}
+
+/* rows */
+.rows{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+/* swipe left to reveal the bin (stock + courses) */
+.swipe{position:relative;border-radius:12px}
+.swipe.open,.swipe.dragging{overflow:hidden}
+.swipe>.row{position:relative;z-index:1;background:var(--bg);transition:transform .22s ease;touch-action:pan-y}
+.swipe.dragging>.row{transition:none}
+.swipe.open>.row{transform:translateX(-84px)}
+.trash{position:absolute;top:0;right:0;bottom:0;width:76px;border:0;border-radius:12px;background:var(--pink-fg);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font:inherit;font-size:.72rem;font-weight:700;padding:0;opacity:0;transition:opacity .15s}
+.swipe.open .trash,.swipe.dragging .trash,.trash:focus-visible{opacity:1}
+.trash svg{width:22px;height:22px}
+.row{display:grid;grid-template-columns:30px 1fr auto;gap:14px;align-items:start;padding:12px 0}
+.check{width:28px;height:28px;border-radius:50%;border:2px solid var(--ring);background:transparent;display:grid;place-items:center;padding:0;margin-top:1px;transition:background .18s,border-color .18s}
+.check svg{opacity:0;transition:opacity .18s}
+.check:hover{border-color:var(--green)}
+.row.done .check{background:var(--green);border-color:var(--green)}
+.check.qty .qn{font-size:.8rem;font-weight:700;color:var(--soft);font-variant-numeric:tabular-nums}
+.check.qty:hover{border-color:var(--green)}
+.left-n{font-weight:600;color:var(--soft)}
+.row.done .check svg{opacity:1}
+.row.done .title{text-decoration:line-through;color:var(--muted)}
+.title{font-size:1.06rem;font-weight:500;min-width:0;overflow-wrap:anywhere}
+.meta{display:flex;flex-wrap:wrap;gap:8px 10px;align-items:center;margin-top:7px;color:var(--muted);font-size:.9rem}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:3px 11px;border-radius:999px;font-size:.88rem;font-weight:500;white-space:nowrap}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+.z-frigo{background:var(--blue-bg);color:var(--blue-fg)} .d-frigo{background:var(--blue-fg)}
+.z-congelo{background:var(--lilac-bg);color:var(--lilac-fg)} .d-congelo{background:var(--lilac-fg)}
+.z-placard{background:var(--grey-bg);color:var(--grey-fg)} .d-placard{background:var(--grey-fg)}
+.z-confort{background:var(--pink-bg);color:var(--pink-fg)} .d-confort{background:var(--pink-fg)}
+.z-autre{background:var(--yellow-bg);color:var(--yellow-fg)} .d-autre{background:var(--yellow-fg)}
+.conf-card{background:var(--pink-bg);color:var(--ink);border-radius:16px;padding:14px 16px;display:flex;flex-direction:column;gap:8px;align-items:flex-start;margin-top:4px}
+.conf-card p{margin:0}
+.conf-l{font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--pink-fg)}
+.conf-t{font-size:1rem;line-height:1.4}
+.conf-h{font-size:.8rem;color:var(--muted)}
+.conf-card textarea{width:100%;box-sizing:border-box;font:inherit;font-size:16px;border:1.5px solid var(--ring);border-radius:12px;padding:10px 12px;background:var(--surface);color:var(--ink);resize:vertical}
+.conf-act{display:flex;gap:8px}
+.conf-page{display:flex;flex-direction:column;gap:22px}
+.conf-intro{margin:0;color:var(--soft);font-size:1rem;line-height:1.5}
+.conf-block{display:flex;flex-direction:column;gap:8px}
+.conf-block p{margin:0}
+.conf-page textarea{width:100%;box-sizing:border-box;font:inherit;font-size:16px;border:1.5px solid var(--ring);border-radius:14px;padding:12px 14px;background:var(--surface);color:var(--ink);resize:vertical}
+.backlink{display:inline-flex;align-items:center;gap:4px;border:0;background:var(--grey-bg);color:var(--ink);font:inherit;font-weight:600;font-size:.92rem;padding:8px 14px 8px 8px;min-height:40px;border-radius:999px;margin-bottom:14px}
+.conf-presets{display:flex;flex-wrap:wrap;gap:6px}
+.conf-p{border:1.5px solid var(--pink-fg);background:var(--surface);color:var(--pink-fg);border-radius:999px;padding:7px 12px;font:inherit;font-size:.86rem;font-weight:600;min-height:36px;text-align:left}
+.conf-p[aria-pressed="true"]{background:var(--pink-fg);color:#fff}
+.conf-sub{font-size:.82rem;color:var(--muted);margin:2px 0 0}
+.conf-card .linkbtn{background:var(--surface);color:var(--pink-fg)}
+.u-bad{background:var(--pink-bg);color:var(--pink-fg)}
+.u-warn{background:var(--yellow-bg);color:var(--yellow-fg)}
+.u-ok{background:var(--green-bg);color:var(--green-fg)}
+.u-none{background:transparent;color:var(--muted);border:1.5px dashed var(--ring)}
+.pillbtn{border:0;cursor:pointer;font:inherit;font-size:.88rem;font-weight:500}
+.u-none.pillbtn{border:1.5px dashed var(--ring);color:var(--soft)}
+.editbtn{border:0;background:transparent;color:var(--muted);display:flex;align-items:center;gap:8px;padding:2px 0 2px 8px;min-height:44px;min-width:44px;border-radius:999px;font-size:.88rem;font-variant-numeric:tabular-nums;white-space:nowrap;align-self:start;margin-top:-7px}
+.editbtn .pen{color:var(--ink);flex:none;width:40px;height:40px;padding:10px;box-sizing:border-box;border-radius:50%;background:var(--grey-bg)}
+@media (hover:hover){.editbtn:hover .pen{background:var(--ring)}}
+.quick-dates{display:flex;flex-wrap:wrap;gap:6px}
+.quick-dates button{border:0;border-radius:999px;background:var(--grey-bg);color:var(--ink);padding:8px 12px;font-size:.85rem;font-weight:600;min-height:36px}
+.quick-dates button[aria-pressed="true"]{background:var(--blue-bg);color:var(--blue-fg)}
+.danger-link{border:0;background:transparent;color:var(--pink-fg);font-weight:600;padding:10px 0;align-self:flex-start}
+.sheet .full{grid-column:1/-1}
+.datecell{position:relative;display:inline-flex}
+.datecell input{position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer;border:0}
+.datecell:focus-within .pill{outline:3px solid var(--blue-fg);outline-offset:2px}
+.right{font-size:.88rem;color:var(--muted);padding-top:4px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.x{border:0;background:transparent;color:var(--muted);width:36px;height:36px;border-radius:50%;margin-top:-4px;font-size:1rem}
+.x:hover{background:var(--grey-bg)}
+.sep{height:1px;background:var(--line);margin:4px 0}
+.section{display:flex;flex-direction:column;gap:6px}
+.empty{color:var(--muted);padding:6px 0;margin:0}
+.empty strong{color:var(--ink);font-weight:600}
+.linkbtn{border:0;background:var(--grey-bg);color:var(--soft);border-radius:999px;padding:9px 16px;font-weight:600;font-size:.9rem}
+.tools{display:flex;gap:10px;flex-wrap:wrap}
+
+/* tiles (scanner) */
+.tile{display:flex;align-items:center;gap:16px;width:100%;border:0;border-radius:26px;padding:20px 22px;font-weight:700;font-size:1.1rem;text-align:left;cursor:pointer}
+.tile .ic{width:52px;height:52px;border-radius:50%;display:grid;place-items:center;flex:none}
+.tile .ic svg{width:24px;height:24px}
+.tile small{display:block;font-weight:500;font-size:.88rem;opacity:.8;margin-top:2px}
+.tile.green{background:var(--green-bg);color:var(--green-fg)} .tile.green .ic{background:var(--green);color:var(--green-ink)}
+.tile.blue{background:var(--blue-bg);color:var(--blue-fg)} .tile.blue .ic{background:var(--blue-fg);color:#fff}
+.tile.drag{outline:3px dashed var(--blue-fg)}
+.tile.lilac{background:var(--lilac-bg);color:var(--lilac-fg)} .tile.lilac .ic{background:var(--lilac-fg);color:#fff}
+.paste-input{resize:none;border:0;color:transparent;caret-color:transparent;background:transparent;-webkit-user-select:text;user-select:text}
+.tile{position:relative;overflow:hidden}
+.tile-input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;font-size:100px;z-index:2}
+.tile:focus-within{outline:3px solid var(--blue-fg);outline-offset:2px}
+/* recipes */
+.rtools{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.rtools .fchip{padding:8px 14px}
+.rtools .fchip{background:var(--surface);border:1.5px solid var(--line);color:var(--soft)}
+.rtools .fchip[aria-pressed="true"]::before{content:"✓";font-weight:800}
+#r-veg[aria-pressed="true"]{background:var(--green-bg);border-color:transparent;color:var(--green-fg)}
+#r-quick[aria-pressed="true"]{background:var(--yellow-bg);border-color:transparent;color:var(--yellow-fg)}
+.renew-all{align-self:center;background:var(--lilac-bg);color:var(--lilac-fg)}
+.ractions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.ractions .btn{width:100%;justify-content:center;white-space:nowrap;padding:10px 8px;font-size:.88rem;display:inline-flex;align-items:center}
+.ractions .btn:only-child{grid-column:1/-1}
+.rcard .btn.cook{background:var(--surface);color:var(--ink);gap:7px;box-shadow:0 1px 3px rgba(17,17,17,.08)}
+.rcard .btn.cook svg{color:var(--green-fg)}
+.rcard .btn.again{background:transparent;color:var(--ink);border:1.5px solid color-mix(in srgb,var(--ink) 18%,transparent)}
+.rcard.loading{opacity:.55}
+.rcard.loading .again{pointer-events:none}
+.rtools .linkbtn{padding:8px 14px}
+#r-status:empty{display:none}
+.recipes{display:flex;flex-direction:column;gap:14px}
+.rcard{border-radius:26px;padding:18px 20px;display:flex;flex-direction:column;gap:10px;background:var(--rc-bg);color:var(--ink)}
+.rcard.c0{--rc-bg:linear-gradient(125deg,var(--hero-a),var(--hero-c))}
+.rcard.c1{--rc-bg:linear-gradient(125deg,var(--calm-a),var(--calm-b))}
+.rcard.c2{--rc-bg:linear-gradient(125deg,var(--calm-c),var(--lilac-bg))}
+.rcard.c3{--rc-bg:linear-gradient(125deg,var(--yellow-bg),var(--green-bg))}
+.rcard h3{font-family:var(--font-display);font-size:1.25rem;font-weight:800;letter-spacing:-.015em;margin:0;text-wrap:balance}
+.rcard .why{margin:0;color:var(--soft);font-size:.95rem}
+.rmeta{display:flex;flex-wrap:wrap;gap:6px}
+.rmeta .pill{background:var(--hero-chip);color:var(--ink)}
+.rmeta .pill.urg{color:var(--pink-fg);font-weight:600}
+.rmiss{font-size:.88rem;color:var(--soft);margin:0}
+.rcard details summary{cursor:pointer;font-weight:600;font-size:.95rem;list-style:none;display:inline-flex;align-items:center;gap:6px;padding:6px 0}
+.rcard details summary::-webkit-details-marker{display:none}
+.rcard details summary::after{content:"›";transform:rotate(90deg);display:inline-block;transition:transform .2s}
+.rcard details[open] summary::after{transform:rotate(-90deg)}
+.rcard ol{margin:6px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:6px}
+.cooked{display:flex;flex-direction:column;gap:8px;background:var(--hero-chip);border-radius:16px;padding:12px 14px}
+.cooked label{display:flex;gap:10px;align-items:center;font-size:.95rem}
+.cooked input{width:22px;height:22px;accent-color:var(--green)}
+.rcard .btn{min-height:44px;padding:10px 14px;font-size:.9rem;align-self:flex-start}
+.rskel{height:150px;border-radius:26px;background:linear-gradient(90deg,var(--grey-bg) 0 40%,var(--line) 50%,var(--grey-bg) 60% 100%);background-size:300% 100%;animation:skel 1.4s linear infinite}
+@keyframes skel{from{background-position:100% 0}to{background-position:-50% 0}}
+@media (prefers-reduced-motion:reduce){.rskel{animation:none}}
+
+/* scan progress card */
+.scan-card{background:var(--surface);border:1px solid var(--line);border-radius:26px;padding:18px;display:flex;flex-direction:column;gap:16px;box-shadow:0 2px 10px rgba(17,17,17,.05)}
+.scan-card.err{border-color:var(--pink-fg)}
+.sc-top{display:grid;grid-template-columns:72px 1fr;gap:14px;align-items:start}
+.thumb{width:72px;height:96px;object-fit:cover;object-position:top;border-radius:14px;background:var(--grey-bg);border:1px solid var(--line)}
+.scan-card h2{font-family:var(--font-display);font-size:1.3rem;font-weight:800;letter-spacing:-.015em;margin:2px 0 4px;text-wrap:balance}
+.scan-card.err h2{color:var(--pink-fg)}
+.steps{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.steps li{display:flex;flex-direction:column;align-items:flex-start;gap:6px;font-size:.82rem;font-weight:600;color:var(--muted)}
+.steps li::before{content:"";display:block;width:100%;height:5px;border-radius:99px;background:var(--grey-bg)}
+.steps li.done::before{background:var(--green)}
+.steps li.now::before{background:linear-gradient(90deg,var(--green) 0 40%,var(--green-bg) 40%);background-size:250% 100%;animation:bar 1.2s linear infinite}
+.steps li.now,.steps li.done{color:var(--ink)}
+.steps li.fail::before{background:var(--pink-fg)}
+.steps .sd{display:none}
+@keyframes bar{from{background-position:100% 0}to{background-position:-150% 0}}
+@media (prefers-reduced-motion:reduce){.steps li.now::before{animation:none;background:var(--green)}}
+.perm{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:12px 16px;font-size:.92rem;color:var(--soft)}
+.perm .ok{color:var(--green-fg);font-weight:600}
+.perm .no{color:var(--pink-fg);font-weight:600}
+.cam-only{display:none}
+@media (pointer:coarse){.cam-only{display:flex}}
+.preview{max-height:220px;border-radius:18px;align-self:flex-start}
+.status{color:var(--soft);margin:0}
+.err{color:var(--pink-fg);font-weight:600;margin:0}
+.review .row{grid-template-columns:30px 1fr}
+.fields{display:grid;grid-template-columns:1fr 1fr;gap:8px;min-width:0}
+.fields .full{grid-column:1/-1}
+.fields input,.fields select,.sheet input,.sheet select{width:100%;min-width:0;padding:10px 12px;border:1.5px solid var(--line);border-radius:12px;background:var(--surface)}
+.qty-in{display:flex;align-items:center;gap:10px;font-size:.88rem;color:var(--soft)}
+.fields .qty-in input{width:80px}
+.fields .name-in{font-size:1.04rem;font-weight:500}
+.raw{color:var(--muted);font-size:.8rem;font-family:ui-monospace,Menlo,monospace}
+.btn{border:0;border-radius:999px;padding:14px 22px;font-weight:700;font-size:1rem;min-height:48px}
+.btn.green{background:var(--green);color:#0b2416}
+.btn.plain{background:var(--grey-bg);color:var(--soft)}
+.actions{display:flex;gap:10px;flex-wrap:wrap}
+
+/* bottom nav + fab */
+.nav{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px);z-index:10}
+.nav-in{max-width:520px;margin:0 auto;display:grid;grid-template-columns:repeat(3,1fr);height:var(--nav-h)}
+.nav button.on,.nav button[aria-expanded="true"]{color:var(--ink)}
+.nav button{border:0;background:transparent;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:var(--muted);font-size:.78rem;font-weight:600;position:relative}
+.nav button svg{width:26px;height:26px}
+.nav button[aria-selected="true"]{color:var(--ink)}
+.nav .badge{position:absolute;top:10px;left:calc(50% + 8px);width:9px;height:9px;border-radius:50%;background:var(--pink-fg);border:2px solid var(--surface)}
+.fab{position:fixed;right:max(20px,calc(50% - 240px));bottom:calc(var(--nav-h) + 18px + env(safe-area-inset-bottom,0px));width:64px;height:64px;border-radius:50%;border:0;background:var(--green);color:var(--green-ink);display:grid;place-items:center;box-shadow:0 8px 24px rgba(52,210,123,.35);z-index:11}
+.fab svg{width:28px;height:28px}
+
+/* add sheet */
+.scrim{position:fixed;inset:0;background:rgba(0,0,0,.28);z-index:20}
+.fab-menu{gap:10px}
+.mini-tiles{display:flex;flex-direction:column;gap:10px}
+.tile.mini{padding:12px 16px;border-radius:20px;font-size:1rem;gap:14px}
+.tile.mini .ic{width:42px;height:42px}
+.tile.mini .ic svg{width:20px;height:20px}
+.tile.mini small{font-size:.82rem}
+.tile.grey{background:var(--grey-bg);color:var(--ink)} .tile.grey .ic{background:var(--surface);color:var(--ink)}
+.fab[aria-expanded="true"] svg{transform:rotate(45deg)}
+.fab svg{transition:transform .2s}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:21;background:var(--surface);border-radius:28px 28px 0 0;padding:22px 20px calc(22px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:14px;max-width:560px;margin:0 auto}
+.sheet h2{font-family:var(--font-display);font-size:1.5rem;font-weight:800;margin:0;letter-spacing:-.02em}
+.sheet .two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.sheet label{display:flex;flex-direction:column;gap:5px;font-size:.82rem;color:var(--soft);font-weight:600}
+
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--nav-h) + 100px + env(safe-area-inset-bottom,0px));background:var(--black);color:var(--black-ink);padding:8px 8px 8px 18px;border-radius:999px;font-weight:600;font-size:.95rem;z-index:30;width:max-content;max-width:calc(100% - 40px);display:flex;align-items:center;gap:12px}
+.toast:not(:has(.undo)){padding:11px 18px}
+.toast .undo{border:0;border-radius:999px;background:var(--black-ink);color:var(--black);font-weight:700;padding:8px 14px;min-height:36px;flex:none}
+/* onboarding */
+.ob{position:fixed;inset:0;z-index:40;background:rgba(0,0,0,.45);display:flex;align-items:flex-end;justify-content:center;padding:0 0 env(safe-area-inset-bottom,0px)}
+@media (min-width:600px){.ob{align-items:center}}
+/* fixed height = the tallest step (measured in obFit), so dots and buttons never move; text scrolls inside if the screen is too short */
+.ob-card{background:var(--surface);color:var(--ink);width:100%;max-width:480px;border-radius:28px 28px 0 0;padding:22px 22px 22px;display:flex;flex-direction:column;gap:18px;box-sizing:border-box;max-height:calc(100% - env(safe-area-inset-top,0px) - 20px);overflow:hidden}
+.ob-card>*{flex:none}
+.ob-card>.ob-body{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain}
+@media (max-height:640px){.ob-art{height:110px;font-size:52px}}
+@media (min-width:600px){.ob-card{border-radius:28px}}
+.ob-top{display:flex;justify-content:space-between;align-items:center}
+.ob-skip{border:0;background:none;color:var(--muted);font:inherit;font-weight:600;padding:10px 4px;min-height:44px}
+.ob-count{font-size:.8rem;font-weight:700;color:var(--muted);letter-spacing:.04em}
+.ob-art{height:150px;border-radius:22px;display:grid;place-items:center;font-size:64px;line-height:1}
+.ob-art.green{background:var(--green-bg)} .ob-art.blue{background:var(--blue-bg)} .ob-art.yellow{background:var(--yellow-bg)} .ob-art.lilac{background:var(--lilac-bg)} .ob-art.pink{background:var(--pink-bg)} .ob-art.grey{background:var(--grey-bg)}
+.ob h2{margin:0;font-size:1.45rem;line-height:1.2}
+.ob p.ob-txt{margin:6px 0 0;color:var(--soft);font-size:1rem;line-height:1.5}
+.ob-dots{display:flex;gap:6px;justify-content:center;margin-top:-6px}
+.ob-dots span{width:7px;height:7px;border-radius:999px;background:var(--ring);transition:width .2s,background .2s}
+.ob-dots span.on{width:22px;background:var(--green)}
+.ob-act{display:flex;gap:10px}
+.ob-act .btn{flex:1}
+.ob-act .btn[hidden]{display:none}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<!-- STOCK -->
+<main class="wrap" id="view-stock">
+  <header class="phead"><button class="theme-btn" type="button" aria-label="Changer de thème"></button>
+    <button class="search-btn" id="search-btn" type="button" aria-label="Rechercher un produit" aria-expanded="false" aria-controls="search" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg></button>
+    <p class="eyebrow">Mon frigo</p>
+    <h1 id="today"></h1>
+  </header>
+  <div class="search" id="search" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg><input id="q" type="search" placeholder="Rechercher dans tout le stock" autocomplete="off" enterkeyhint="search" aria-label="Rechercher dans tout le stock"><button id="q-clear" type="button" aria-label="Fermer la recherche">✕</button></div>
+  <div class="hero" id="hero"></div>
+  <div class="filters" id="filters" role="toolbar" aria-label="Filtrer par rangement"></div>
+  <div class="conf-card" id="conf-card" hidden></div>
+  <div id="stock" style="display:flex;flex-direction:column;gap:26px"></div>
+  <div class="tools" id="stock-tools"></div>
+</main>
+
+<!-- COURSES -->
+<main class="wrap" id="view-shop" hidden>
+  <header class="phead"><button class="theme-btn" type="button" aria-label="Changer de thème"></button>
+    <p class="eyebrow">À racheter</p>
+    <h1>Courses</h1>
+  </header>
+  <div id="shop"></div>
+  <p class="status" style="font-size:.9rem">Coche un produit acheté : il revient dans le stock avec la même durée de conservation que la dernière fois. Glisse un produit vers la gauche pour le retirer si tu n'en rachètes pas.</p>
+</main>
+
+<!-- RECETTES -->
+<main class="wrap" id="view-recipes" hidden>
+  <header class="phead"><button class="theme-btn" type="button" aria-label="Changer de thème"></button>
+    <p class="eyebrow">Avec ce que j'ai</p>
+    <h1>Recettes</h1>
+  </header>
+  <div class="rtools">
+    <button class="fchip" id="r-veg" aria-pressed="true" type="button">Végé</button>
+    <button class="fchip" id="r-quick" aria-pressed="false" type="button">Moins de 20 min</button>
+  </div>
+  <p id="r-status" class="status"></p>
+  <div id="recipes" class="recipes"></div>
+  <button class="btn plain renew-all" id="r-more" type="button" hidden>↻ Proposer 4 nouvelles recettes</button>
+</main>
+
+<!-- SCANNER -->
+<main class="wrap" id="view-scan" hidden>
+  <header class="phead"><button class="theme-btn" type="button" aria-label="Changer de thème"></button>
+    <p class="eyebrow">Ajouter</p>
+    <h1>Scanner un ticket</h1>
+  </header>
+  <section class="scan-card" id="scan-card" hidden aria-live="polite">
+    <div class="sc-top">
+      <img id="preview" class="thumb" alt="Photo du ticket">
+      <div style="min-width:0"><p class="eyebrow" id="sc-step"></p><h2 id="sc-title"></h2><p id="sc-msg" class="status"></p></div>
+    </div>
+    <ol class="steps" id="steps"><li data-s="1"><span class="sd"></span>Photo</li><li data-s="2"><span class="sd"></span>Lecture</li><li data-s="3"><span class="sd"></span>Vérification</li></ol>
+    <div class="actions"><button class="btn plain" id="scan-stop" type="button">Arrêter</button><button class="btn plain" id="scan-again" type="button" hidden>Essayer une autre photo</button></div>
+  </section>
+  <div id="pick" style="display:flex;flex-direction:column;gap:14px">
+    <div class="tile green cam-only">
+      <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg></span>
+      <span>Prendre une photo<small>Ticket bien à plat, toute la longueur</small></span>
+      <input id="file-cam" class="tile-input" type="file" accept="image/*" capture="environment" aria-label="Prendre une photo du ticket">
+    </div>
+    <div class="tile blue" id="drop">
+      <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><circle cx="9" cy="10" r="1.6"/><path d="m20 16-4.5-4.5L6 19"/></svg></span>
+      <span>Choisir dans mes photos<small>Ou glisse une image ici</small></span>
+      <input id="file" class="tile-input" type="file" accept="image/*" aria-label="Choisir une photo du ticket">
+    </div>
+    <div class="tile lilac paste-tile">
+      <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="12" height="17" rx="2"/><path d="M9 4V3h6v1M9 10h6M9 14h4"/></svg></span>
+      <span>Coller une photo<small>Si les boutons au-dessus ne font rien : copie la photo dans Photos, puis appui long ici → Coller</small></span>
+      <textarea id="paste" class="tile-input paste-input" aria-label="Zone pour coller la photo du ticket" inputmode="none"></textarea>
+    </div>
+  </div>
+  <div class="perm" id="perm" hidden>
+    <span id="perm-text"></span>
+    <button class="linkbtn" id="perm-btn" type="button" hidden></button>
+  </div>
+  <p id="scan-note" class="status"></p>
+  <div id="review"></div>
+</main>
+
+<button class="fab" id="fab" aria-label="Ajouter" aria-expanded="false">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+</button>
+
+<div class="ob" id="ob" hidden>
+  <div class="ob-card" role="dialog" aria-modal="true" aria-labelledby="ob-title">
+    <div class="ob-top"><span class="ob-count" id="ob-count"></span><button class="ob-skip" id="ob-skip" type="button">Passer</button></div>
+    <div class="ob-art" id="ob-art" aria-hidden="true"></div>
+    <div class="ob-body"><h2 id="ob-title"></h2><p class="ob-txt" id="ob-txt"></p></div>
+    <div class="ob-dots" id="ob-dots" aria-hidden="true"></div>
+    <div class="ob-act"><button class="btn plain" id="ob-prev" type="button">Retour</button><button class="btn green" id="ob-next" type="button">Suivant</button></div>
+  </div>
+</div>
+
+<!-- MA CONFORT FOOD (settings page: from the Stock card or the Plus menu) -->
+<main class="wrap" id="view-confort" hidden>
+  <header class="phead"><button class="theme-btn" type="button" aria-label="Changer de thème"></button>
+    <button class="backlink" type="button" id="conf-back"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 6-6 6 6 6"/></svg>Retour</button>
+    <p class="eyebrow">Réglages</p>
+    <h1>Ma confort food</h1>
+  </header>
+  <section class="conf-page">
+    <p class="conf-intro">Dis ce que « confort food » veut dire pour toi. Ces produits portent l'étiquette Confort et se retrouvent sous le filtre Confort food du Stock.</p>
+    <div class="conf-block">
+      <p class="conf-l">Propositions</p>
+      <p class="conf-sub">Choisis-en une ou plusieurs, ou écris la tienne.</p>
+      <div class="conf-presets" id="conf-presets"></div>
+    </div>
+    <div class="conf-block">
+      <label class="conf-l" for="conf-in">Ma définition</label>
+      <textarea id="conf-in" rows="4" placeholder="ex. les plats déjà préparés qu'il suffit de réchauffer"></textarea>
+      <p class="conf-h">Sert aussi à étiqueter automatiquement les produits quand tu scannes un ticket.</p>
+    </div>
+    <div class="conf-dirty" id="conf-dirty" hidden role="alert"><p>Tu as des modifications non enregistrées.</p><div class="conf-act"><button class="btn green" id="conf-save2" type="button">Enregistrer</button><button class="btn plain" id="conf-discard" type="button">Quitter sans enregistrer</button></div></div>
+    <div class="conf-act"><button class="btn green" id="conf-save" type="button">Enregistrer</button><button class="btn plain" id="conf-cancel" type="button">Annuler</button></div>
+  </section>
+</main>
+
+<!-- COMING SOON (scan / recipes when Claude isn't available) -->
+<main class="wrap" id="view-soon" hidden>
+  <header class="phead"><button class="theme-btn" type="button" aria-label="Changer de thème"></button>
+    <p class="eyebrow" id="soon-eyebrow"></p>
+    <h1 id="soon-title"></h1>
+  </header>
+  <section class="soon-card">
+    <div class="soon-art" id="soon-art" aria-hidden="true"></div>
+    <span class="soon-tag">Bientôt disponible</span>
+    <p id="soon-txt"></p>
+    <button class="btn green" data-tab="stock" type="button">Retour au stock</button>
+  </section>
+</main>
+
+<div class="kmenu" id="kmenu" role="menu" aria-label="Menu" hidden>
+  <button role="menuitem" type="button" data-k="scan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2.5h12v19l-2-1.4-2 1.4-2-1.4-2 1.4-2-1.4-2 1.4z"/><path d="M9 7.5h6M9 11h6M9 14.5h3.5"/></svg><span class="klabel">Scanner un ticket</span><span class="soon-tag">Bientôt</span></button>
+  <button role="menuitem" type="button" data-k="recipes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 11h17v2.5a6 6 0 0 1-6 6h-5a6 6 0 0 1-6-6z"/><path d="M8 7.5c0-1.5 1.5-1.5 1.5-3M12 7.5c0-1.5 1.5-1.5 1.5-3M16 7.5c0-1.5 1.5-1.5 1.5-3"/></svg><span class="klabel">Idées de recettes</span><span class="soon-tag">Bientôt</span></button>
+  <div class="ksep" role="separator"></div>
+  <button role="menuitem" type="button" data-k="confort"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg><span class="klabel">Ma confort food</span></button>
+  <button role="menuitem" type="button" data-k="help"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6v.6M12 17.2v.1"/></svg><span class="klabel">Aide</span></button>
+  <button role="menuitemcheckbox" type="button" data-k="theme" id="k-theme" aria-checked="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg><span class="klabel">Mode sombre</span><span class="kswitch" aria-hidden="true"></span></button>
+</div>
+
+<div class="dp" id="dp" hidden>
+  <div class="dp-card" role="dialog" aria-modal="true" aria-labelledby="dp-title">
+    <div class="dp-head"><h2 id="dp-title">Date de péremption</h2><button class="dp-x" type="button" data-dpx aria-label="Fermer">✕</button></div>
+    <div class="dp-quick">
+      <button type="button" data-dpq="0">Aujourd'hui</button><button type="button" data-dpq="1">Demain</button><button type="button" data-dpq="3">Dans 3 j</button><button type="button" data-dpq="7">Dans 1 sem.</button><button type="button" data-dpq="30">Dans 1 mois</button>
+    </div>
+    <div class="dp-nav"><button type="button" data-dpm="-1" aria-label="Mois précédent">‹</button><button type="button" class="dp-my" id="dp-month" data-dpy></button><button type="button" data-dpm="1" aria-label="Mois suivant">›</button></div>
+    <div class="dp-wd" aria-hidden="true"><span>L</span><span>M</span><span>M</span><span>J</span><span>V</span><span>S</span><span>D</span></div>
+    <div class="dp-grid" id="dp-grid"></div>
+    <button class="btn plain" type="button" data-dpclear>Sans date</button>
+  </div>
+</div>
+
+<nav class="nav"><div class="nav-in" role="tablist">
+  <button role="tab" data-tab="stock" aria-selected="true">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="5.5" y="2.5" width="13" height="19" rx="2.5"/><path d="M5.5 10h13M9 6v2M9 13v3"/></svg>
+    Stock<span class="badge" id="badge" hidden></span>
+  </button>
+  <button role="tab" data-tab="shop" aria-selected="false">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h2.5l2.2 10.5h10.8L20.5 7H6.4"/><circle cx="9.5" cy="19" r="1.4"/><circle cx="17" cy="19" r="1.4"/></svg>
+    Courses
+  </button>
+  <button type="button" id="nav-more" aria-haspopup="menu" aria-expanded="false">
+    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.9"/><circle cx="12" cy="12" r="1.9"/><circle cx="19" cy="12" r="1.9"/></svg>
+    Plus
+  </button>
+</div></nav>
+
+<div class="scrim" id="scrim" hidden></div>
+<div class="sheet fab-menu" id="fab-menu" hidden role="dialog" aria-label="Ajouter au stock">
+  <h2>Ajouter au stock</h2>
+  <div class="mini-tiles" id="fm-photo">
+    <div class="tile mini green cam-only">
+      <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg></span>
+      <span>Scanner un ticket<small>Prendre une photo</small></span>
+      <input id="fm-cam" class="tile-input" type="file" accept="image/*" capture="environment" aria-label="Prendre une photo du ticket">
+    </div>
+    <div class="tile mini blue">
+      <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><circle cx="9" cy="10" r="1.6"/><path d="m20 16-4.5-4.5L6 19"/></svg></span>
+      <span>Importer un ticket<small>Depuis mes photos</small></span>
+      <input id="fm-file" class="tile-input" type="file" accept="image/*" aria-label="Importer une photo du ticket">
+    </div>
+    <div class="tile mini lilac">
+      <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="12" height="17" rx="2"/><path d="M9 4V3h6v1M9 10h6M9 14h4"/></svg></span>
+      <span>Coller un ticket<small>Appui long ici → Coller</small></span>
+      <textarea id="fm-paste" class="tile-input paste-input" aria-label="Zone pour coller la photo du ticket" inputmode="none"></textarea>
+    </div>
+  </div>
+  <button class="tile mini grey" id="fm-manual" type="button">
+    <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span>
+    <span>Ajouter un produit à la main</span>
+  </button>
+</div>
+<form class="sheet" id="sheet" hidden>
+  <h2 id="sheet-title">Ajouter au stock</h2>
+  <label>Produit<input id="add-name" type="text" placeholder="ex. Yaourts nature" autocomplete="off"></label>
+  <div class="two">
+    <label>Rangement<select id="add-zone"><option value="frigo">Frigo</option><option value="congelo">Congélo</option><option value="placard">Placard</option><option value="autre">Autre (sans date)</option></select></label>
+    <label id="add-date-l">Date de péremption<input id="add-date" type="date"></label>
+    <label id="add-qty-l">Quantité<input id="add-qty" type="number" min="1" max="99" value="1" inputmode="numeric"></label>
+  </div>
+  <label class="chk" id="add-conf-l"><input type="checkbox" id="add-conf"> C'est de la confort food</label>
+  <div class="actions"><button class="btn green" type="submit">Ajouter</button><button class="btn plain" type="button" id="sheet-cancel">Annuler</button></div>
+</form>
+
+<form class="sheet" id="edit-sheet" hidden aria-label="Modifier le produit">
+  <h2>Modifier</h2>
+  <label>Produit<input id="ed-name" type="text" autocomplete="off"></label>
+  <div class="two">
+    <label>Rangement<select id="ed-zone"><option value="frigo">Frigo</option><option value="congelo">Congélo</option><option value="placard">Placard</option><option value="autre">Autre (sans date)</option></select></label>
+    <label>Quantité restante<input id="ed-qty" type="number" min="1" max="99" inputmode="numeric"></label>
+  </div>
+  <label class="chk" id="ed-conf-l"><input type="checkbox" id="ed-conf"> C'est de la confort food</label>
+  <p class="ed-note" id="ed-autre-note" hidden>Les produits « Autre » n'ont pas de date. Elle est masquée mais conservée si tu changes d'avis.</p>
+  <label>Date de péremption<input id="ed-date" type="date"></label>
+  <label>Type de date<select id="ed-type"><option value="">Non précisé</option><option value="DLC">À consommer jusqu'au (produit frais)</option><option value="DDM">À consommer de préférence avant</option></select></label>
+  <div class="actions"><button class="btn green" type="submit">Enregistrer</button><button class="btn plain" type="button" id="ed-cancel">Annuler</button></div>
+  <button class="danger-link" type="button" id="ed-delete">Supprimer du stock (jeté, donné…)</button>
+</form>
+<div id="toast" class="toast" role="status" hidden></div>
+
+<script>
+(() => {
+const ZONES = {frigo:"Frigo", congelo:"Congélo", placard:"Placard", autre:"Autre"};
+/* filter chips: the storage places, plus "Confort food", which is a tag on top of the storage place */
+const FILTERS = {frigo:"Frigo", congelo:"Congélo", placard:"Placard", autre:"Autre", confort:"Confort food"};
+/* older items stored "confort" as their place: move them to the fridge, tagged confort */
+function normItem(i){ if (i && i.zone==="confort") { i.zone = "frigo"; i.confort = true; } return i; }
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const todayISO = () => { const d = new Date(); d.setMinutes(d.getMinutes()-d.getTimezoneOffset()); return d.toISOString().slice(0,10); };
+const addDays = (n) => { const d = new Date(); d.setDate(d.getDate()+n); d.setMinutes(d.getMinutes()-d.getTimezoneOffset()); return d.toISOString().slice(0,10); };
+const daysLeft = iso => { if(!iso) return null; const t = new Date(todayISO()+"T00:00:00"), e = new Date(iso+"T00:00:00"); return Math.round((e-t)/86400000); };
+const norm = s => String(s||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z0-9 ]/g," ").replace(/\s+/g," ").trim();
+const CHECK = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>`;
+
+let items = [];          // {id,name,zone,expires,dateType,addedAt,status:'stock'|'shop',example?}
+let store = null;        // db collection or null
+let tab = "stock";
+let zoneFilter = "all";
+try { tab = localStorage.getItem("frigo.tab") || "stock"; zoneFilter = localStorage.getItem("frigo.zone") || "all"; } catch {}
+
+/* user-defined meaning of "confort food" */
+const CONF_DEFAULT = "petits plaisirs et grignotage (chocolat, bonbons, biscuits, chips)";
+let confDef = ""; try { confDef = localStorage.getItem("frigo.confort") || ""; } catch {}
+let confEditing = false;
+/* summary card at the top of Stock: folded by default, tap to unfold (remembered) */
+let heroOpen = false; try { heroOpen = localStorage.getItem("frigo.heroOpen")==="1"; } catch {}
+/* the alert stays folded only for the products it held when folded: a new urgent product unfolds it */
+let alertFolded = null; try { alertFolded = JSON.parse(localStorage.getItem("frigo.alertFolded")||"null"); } catch {}
+let lastUrgent = [];
+document.getElementById("hero").addEventListener("click", e => {
+  const t = e.target.closest("#hero-toggle"); if (!t) return;
+  if (document.getElementById("hero").classList.contains("calm")) {
+    heroOpen = !heroOpen; try { localStorage.setItem("frigo.heroOpen", heroOpen ? "1" : "0"); } catch {}
+  } else {
+    alertFolded = t.getAttribute("aria-expanded")==="true" ? lastUrgent.slice() : null;
+    try { localStorage.setItem("frigo.alertFolded", JSON.stringify(alertFolded)); } catch {}
+  }
+  render(); document.getElementById("hero-toggle")?.focus({preventScroll:true});
+});
+/* search in the stock */
+/* fade the edges of the filter bar when more chips are hidden off-screen */
+function paintFade(){
+  const f = document.getElementById("filters"); if (!f) return;
+  const l = f.scrollLeft > 4, r = f.scrollLeft + f.clientWidth < f.scrollWidth - 4;
+  const m = `linear-gradient(90deg, ${l ? "transparent 0, #000 44px" : "#000 0"}, ${r ? "#000 calc(100% - 44px), transparent 100%" : "#000 100%"})`;
+  f.style.webkitMaskImage = m; f.style.maskImage = m;
+}
+document.getElementById("filters").addEventListener("scroll", paintFade, {passive:true});
+addEventListener("resize", paintFade);
+let q = "";
+/* search: opened from the magnifier at the top right, always across the whole stock */
+let searchOpen = false;
+function openSearch(){ searchOpen = true; render(); document.getElementById("q").focus(); }
+function closeSearch(refocus){ searchOpen = false; q = ""; document.getElementById("q").value = ""; render(); if (refocus) document.getElementById("search-btn").focus({preventScroll:true}); }
+document.getElementById("q").addEventListener("input", e => { q = e.target.value; render(); });
+document.getElementById("q").addEventListener("keydown", e => { if (e.key==="Escape") closeSearch(true); });
+document.getElementById("q-clear").addEventListener("click", () => closeSearch(true));
+document.getElementById("search-btn").addEventListener("click", () => searchOpen ? closeSearch(true) : openSearch());
+/* one-time hint that rows can be swiped left */
+let swipeHinted = false; try { swipeHinted = localStorage.getItem("frigo.swipeHint")==="1"; } catch {}
+function maybeSwipeHint(){
+  if (swipeHinted || tab!=="stock" || !document.getElementById("ob").hidden) return;
+  const s = document.querySelector("#stock .swipe"); if (!s) return;
+  swipeHinted = true; try { localStorage.setItem("frigo.swipeHint","1"); } catch {}
+  setTimeout(() => { const r = document.querySelector("#stock .swipe"); if (!r) return; r.classList.add("hint"); setTimeout(() => r.classList.remove("hint"), 1700); }, 900);
+}
+const CONF_PRESETS = [
+  "Plats déjà préparés à réchauffer",
+  "Petits plaisirs sucrés (chocolat, bonbons, biscuits)",
+  "Grignotage salé (chips, apéro)",
+  "Desserts et glaces",
+  "Pizzas, burgers et frites",
+  "Pâtes, purée et plats réconfortants",
+  "Boissons plaisir (sodas, jus, chocolat chaud)"
+];
+const confParts = s => s.split(/\s*;\s*/).map(x=>x.trim()).filter(Boolean);
+function syncPresets(){
+  const t = document.getElementById("conf-in"); if (!t) return;
+  const parts = confParts(t.value).map(x=>x.toLowerCase());
+  document.querySelectorAll(".conf-p").forEach(b => b.setAttribute("aria-pressed", parts.includes(b.dataset.p.toLowerCase())));
+}
+function paintConf(){
+  const c = document.getElementById("conf-card"); if (!c) return;
+  c.hidden = zoneFilter!=="confort" || !!q; if (c.hidden) return;
+  c.innerHTML = `<p class="conf-l">Ma confort food</p>
+       <p class="conf-t">${confDef ? esc(confDef) : `Pas encore définie. Par défaut : ${CONF_DEFAULT}.`}</p>
+       <button class="linkbtn" id="conf-edit" type="button">${confDef ? "Modifier" : "Définir ma confort food"}</button>`;
+}
+/* the settings page, reached from the Stock card or from Plus › Ma confort food */
+let confPrev = "stock";
+function openConfPage(){ if (tab!=="confort") confPrev = tab; window.scrollTo(0,0); showTab("confort"); }
+function fillConfPage(){
+  document.getElementById("conf-presets").innerHTML = CONF_PRESETS.map(p => `<button class="conf-p" type="button" data-p="${esc(p)}" aria-pressed="false">${esc(p)}</button>`).join("");
+  document.getElementById("conf-in").value = confDef; syncPresets();
+  document.getElementById("conf-dirty").hidden = true;
+}
+function leaveConfPage(){ window.scrollTo(0,0); showTab(confPrev && confPrev!=="confort" ? confPrev : "stock"); }
+document.getElementById("conf-card").addEventListener("click", e => { if (e.target.closest("#conf-edit")) openConfPage(); });
+document.getElementById("view-confort").addEventListener("input", e => { if (e.target.id==="conf-in") syncPresets(); });
+document.getElementById("view-confort").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  if (b.dataset.p) {
+    const t = document.getElementById("conf-in"); const p = b.dataset.p;
+    const parts = confParts(t.value); const i = parts.findIndex(x => x.toLowerCase()===p.toLowerCase());
+    if (i>=0) parts.splice(i,1); else parts.push(p);
+    t.value = parts.join(" ; "); syncPresets(); return;
+  }
+  if (b.id==="conf-save" || b.id==="conf-save2") { confDef = document.getElementById("conf-in").value.trim(); try { localStorage.setItem("frigo.confort", confDef); } catch {} leaveConfPage(); paintConf(); toast("Confort food enregistrée"); }
+  else if (b.id==="conf-cancel" || b.id==="conf-back") {
+    if (document.getElementById("conf-in").value.trim() !== confDef) {
+      const d = document.getElementById("conf-dirty"); d.hidden = false;
+      d.scrollIntoView({block:"center", behavior:"smooth"}); document.getElementById("conf-save2").focus({preventScroll:true});
+    } else leaveConfPage();
+  }
+  else if (b.id==="conf-discard") leaveConfPage();
+});
+
+/* ---------- storage: db when available, browser storage otherwise ---------- */
+const LS = "frigo.items";
+function loadLocal(){ try { items = JSON.parse(localStorage.getItem(LS)||"[]"); } catch { items = []; } render(); }
+function saveLocal(){ try { localStorage.setItem(LS, JSON.stringify(items)); } catch {} render(); }
+const newId = () => Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+
+async function put(item){
+  if (store) { const {id, ...body} = item; await store.doc(id).set(body); }
+  else { const i = items.findIndex(x=>x.id===item.id); i>=0 ? items[i]=item : items.push(item); saveLocal(); }
+}
+async function remove(id){
+  if (store) await store.doc(id).delete();
+  else { items = items.filter(x=>x.id!==id); saveLocal(); }
+}
+
+let dataReady = false;
+/* Only the owner's stock lives online (synced across their devices). Anyone else the page is shared with
+   gets their own fridge, kept in this browser, so testers never see or change the owner's stock. */
+let personal = false;
+(async () => {
+  const [db, user] = await Promise.all([window.claude?.use?.("db"), window.claude?.use?.("user")]);
+  const owner = user ? await user.isOwner().catch(()=>false) : false;
+  if (!db || !owner) { personal = !!db && !owner; dataReady = true; return render(); }
+  store = db.collection("items");
+  store.onSnapshot(snap => {
+    items = snap.docs.map(d => ({id:d.id, ...d.data()}));
+    dataReady = true;
+    render();
+  }, () => { store = null; loadLocal(); toast("Synchro indisponible, stockage local utilisé"); });
+})();
+
+/* ---------- render ---------- */
+function due(it){
+  const n = daysLeft(it.expires);
+  if (n === null) return {cls:"u-none", txt:"sans date"};
+  const soft = it.dateType === "DDM";
+  if (n < 0) return soft ? {cls:"u-warn", txt:"date conseillée passée"} : {cls:"u-bad", txt:`périmé · ${-n} j`};
+  if (n === 0) return {cls:"u-bad", txt:"aujourd'hui"};
+  if (n === 1) return {cls:"u-bad", txt:"demain"};
+  if (n <= 4) return {cls:"u-warn", txt:`dans ${n} jours`};
+  if (n > 60) return {cls:"u-ok", txt:new Date(it.expires+"T12:00:00").toLocaleDateString("fr-FR",{month:"short",year:"numeric"})};
+  return {cls:"u-ok", txt:`dans ${n} jours`};
+}
+const byDate = (a,b) => (a.expires||"9999") < (b.expires||"9999") ? -1 : (a.expires||"9999") > (b.expires||"9999") ? 1 : a.name.localeCompare(b.name);
+const fmtDate = iso => iso ? new Date(iso+"T12:00:00").toLocaleDateString("fr-FR",{day:"numeric",month:"short"}) : "";
+
+const qtyOf = i => Math.max(1, parseInt(i.qty)||1);
+/* The round button: shows how many are left; with one left it ticks and sends the item to the shopping list. */
+function checkBtn(i, extra=""){
+  const q = qtyOf(i);
+  return q > 1
+    ? `<button class="check qty ${extra}" data-used="${i.id}" aria-label="${esc(i.name)} : en utiliser un (${q} restants)" title="En utiliser un"><span class="qn">${q}</span></button>`
+    : `<button class="check ${extra}" data-used="${i.id}" aria-label="${esc(i.name)} fini, à racheter" title="Fini : passe dans les courses">${CHECK}</button>`;
+}
+/* Use one unit: decrement, or move to the shopping list (refilled to the bought quantity) when it was the last. */
+function usedOne(it){
+  const q = qtyOf(it);
+  return q > 1 ? {...it, qty:q-1} : {...it, status:"shop", qty: it.qtyFull || 1};
+}
+
+function stockRow(i){
+  const d = due(i);
+  return `<li class="swipe"><div class="row" data-row="${i.id}">
+    ${checkBtn(i)}
+    <div style="min-width:0"><div class="title">${esc(i.name)}</div>
+      <div class="meta">
+        ${i.zone==="autre" ? "" : `<button class="pill pillbtn ${d.cls}" data-edit="${i.id}" type="button" aria-label="${i.expires?"Changer la date de":"Ajouter une date à"} ${esc(i.name)}">${i.expires ? d.txt : "+ Ajouter une date"}</button>`}
+        ${i.confort?`<span class="ctag">Confort</span>`:""}
+        ${zoneFilter==="confort" && !q?`<span><span class="dot d-${i.zone||"frigo"}"></span> ${ZONES[i.zone]||"Frigo"}</span>`:""}
+        ${i.dateType && i.zone!=="autre"?`<span title="${i.dateType==="DLC"?"À consommer jusqu'au (date limite)":"À consommer de préférence avant"}">${i.dateType==="DLC"?"à consommer jusqu'au":"à consommer de préférence"}</span>`:""}
+        ${qtyOf(i)>1?`<span class="left-n">${qtyOf(i)} restants</span>`:""}
+        ${i.example?`<span>exemple</span>`:""}
+      </div></div>
+    <button class="editbtn" data-edit="${i.id}" type="button" aria-label="Modifier ${esc(i.name)}"><span>${i.zone==="autre"?"":fmtDate(i.expires)}</span><svg class="pen" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m13.5 6.5 4 4"/></svg></button>
+  </div>${trashBtn(i, "Supprimer")}</li>`;
+}
+const TRASH = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>`;
+function trashBtn(i, label){
+  return `<button class="trash" type="button" data-trash="${i.id}" aria-label="${label} ${esc(i.name)}">${TRASH}${label}</button>`;
+}
+
+function render(){
+  items.forEach(normItem);
+  const stock = items.filter(i=>i.status!=="shop").sort(byDate);
+  const shop = items.filter(i=>i.status==="shop").sort((a,b)=>a.name.localeCompare(b.name));
+
+  const now = new Date();
+  const t = now.toLocaleDateString("fr-FR",{weekday:"short", day:"numeric", month:"short"});
+  $("#today").textContent = (t.charAt(0).toUpperCase()+t.slice(1)).replace(/\./g,"");
+
+  // summary
+  const urgent = stock.filter(i => { const n=daysLeft(i.expires); return n!==null && n<=2 && i.zone!=="congelo" && i.zone!=="autre" && !(n<0 && i.dateType==="DDM"); });
+  lastUrgent = urgent.map(i=>i.id);
+  const open = urgent.length ? !(alertFolded && urgent.every(i=>alertFolded.includes(i.id))) : heroOpen;
+  const hero = $("#hero");
+  hero.classList.toggle("calm", !urgent.length);
+  hero.classList.toggle("mini", !open && stock.length > 0);
+  const CHEV = `<svg class="hchev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>`;
+  const nextUp = stock.filter(i => i.expires && i.zone!=="congelo" && i.zone!=="autre" && !urgent.includes(i)).sort(byDate)[0];
+  hero.innerHTML = !stock.length
+    ? `<div class="hero-top">Stock vide</div><p>Ajoute tes premiers produits pour suivre leurs dates de péremption.</p>`
+    : urgent.length
+    ? `<button class="hero-top hero-toggle" id="hero-toggle" type="button" aria-expanded="${open}" aria-controls="hero-body"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span class="hm-t">À manger en premier</span><span class="n">${urgent.length}</span>${CHEV}</button>
+       <div id="hero-body" class="hero-body" ${open?"":"hidden"}><ul class="hero-list">${urgent.slice(0,5).map(i=>`<li data-row="${i.id}">
+         ${checkBtn(i, "hcheck")}
+         <button class="hgo" data-goto="${i.id}" aria-label="Voir ${esc(i.name)} dans la liste"><span class="hname">${esc(i.name)}</span><span class="hdue">${due(i).txt}</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg></button>
+       </li>`).join("")}</ul>${urgent.length>5?`<p>+ ${urgent.length-5} autre${urgent.length>6?"s":""} dans la liste</p>`:""}</div>`
+    : `<button class="hero-top hero-toggle" id="hero-toggle" type="button" aria-expanded="${open}" aria-controls="hero-body"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg><span class="hm-t">Rien ne presse</span><span class="hm-s">${open?"":"sous 2 jours"}</span>${CHEV}</button>
+       <div id="hero-body" class="hero-body" ${open?"":"hidden"}><p>Aucun produit ne périme dans les 2 prochains jours.</p>${nextUp?`<button class="hnext" data-goto="${nextUp.id}" type="button"><span>Prochain : <strong>${esc(nextUp.name)}</strong></span><span class="hdue">${due(nextUp).txt}</span></button>`:""}</div>`;
+  $("#badge").hidden = !urgent.length;
+
+  // search + filters
+  const zoneOf = i => i.zone || "frigo";
+  const shown = q ? stock.filter(i => norm(i.name).includes(norm(q))) : stock;
+  const inFilter = (i, f) => f==="confort" ? !!i.confort : zoneOf(i)===f;
+  const vf = q ? "all" : zoneFilter; // a search always looks through every category
+  $("#search").hidden = !stock.length || !searchOpen;
+  $("#search-btn").hidden = !stock.length; $("#search-btn").setAttribute("aria-expanded", searchOpen);
+  $("#filters").hidden = !stock.length;
+  $("#filters").innerHTML = [["all","Tout",shown.length], ...Object.entries(FILTERS).map(([z,l])=>[z,l,shown.filter(i=>inFilter(i,z)).length])]
+    .map(([z,l,n]) => `${z==="confort"?`<span class="fsep" aria-hidden="true"></span>`:""}<button class="fchip f-${z}" data-filter="${z}" aria-pressed="${vf===z}"${z==="confort"?' title="Étiquette : ces produits sont aussi comptés dans leur rangement"':""}>${z==="confort"?`<svg class="fheart" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 20.5s-7.5-4.6-7.5-10.4A4.3 4.3 0 0 1 12 7.3a4.3 4.3 0 0 1 7.5 2.8c0 5.8-7.5 10.4-7.5 10.4z"/></svg>`:""}${l}<span class="c">${n}</span></button>`).join("");
+  { const f = $("#filters"), a = f.querySelector('[aria-pressed="true"]');
+    if (a && (a.offsetLeft < f.scrollLeft + 20 || a.offsetLeft + a.offsetWidth > f.scrollLeft + f.clientWidth - 20)) f.scrollLeft = a.offsetLeft - 20; }
+  paintConf(); paintFade();
+
+  // stock by zone (or one flat list for the Confort food tag)
+  const emptyMsg = z => q ? `Aucun produit ne correspond à « ${esc(q)} »${z==="all"?"":" ici"}` : z==="confort" ? "Pas de confort food en stock" : z==="autre" ? "Aucun autre produit" : `Rien dans ${z==="placard"?"le placard":z==="congelo"?"le congélo":"le frigo"}`;
+  const section = (z, list, showHead) => `<section class="section"><div class="section-h" ${showHead?"":"hidden"}><span class="pill z-${z}"><span class="dot d-${z}"></span>${ZONES[z]}</span><span class="bubble">${list.length}</span></div>
+      <ul class="rows">${list.map(stockRow).join("")}</ul></section>`;
+  let body;
+  if (vf==="confort") { const l = shown.filter(i=>i.confort); body = l.length ? section("frigo", l, false) : `<p class="empty"><strong>${emptyMsg("confort")}.</strong></p>`; }
+  else if (vf==="all") { body = Object.keys(ZONES).map(z => { const l = shown.filter(i=>zoneOf(i)===z); return l.length ? section(z, l, true) : ""; }).join("") || (q ? `<p class="empty"><strong>${emptyMsg("all")}.</strong></p>` : ""); }
+  else { const l = shown.filter(i=>zoneOf(i)===vf); body = l.length ? section(vf, l, false) : `<p class="empty"><strong>${emptyMsg(vf)}.</strong></p>`; }
+  $("#stock").innerHTML = stock.length ? body  : `<button class="empty-add" id="empty-add" type="button">
+      <span class="ea-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span>
+      <span class="ea-t">Ajouter un produit</span>
+      <span class="ea-s">Touche ici pour remplir ton stock</span>
+    </button>`;
+
+  maybeSwipeHint();
+  const hasEx = items.some(i=>i.example);
+  const dated = stock.filter(i=>i.expires && i.zone!=="autre").length;
+  $("#stock-tools").innerHTML =
+    (dated ? `<button class="linkbtn" id="ics">Exporter les dates vers le calendrier</button>` : "") +
+    (hasEx ? `<button class="linkbtn" id="clear-ex">Effacer les exemples</button>` : "") +
+    (personal ? `<p class="status" style="font-size:.85rem;width:100%">Ton frigo est enregistré sur cet appareil uniquement.</p>` : "");
+
+  // shopping, grouped by storage place like the Stock
+  const shopRow = i => `<li class="swipe"><div class="row" data-row="${i.id}">
+        <button class="check" data-bought="${i.id}" aria-label="${esc(i.name)} acheté, remettre dans le stock">${CHECK}</button>
+        <div style="min-width:0"><div class="title">${esc(i.name)}</div>
+          <div class="meta">${i.confort?`<span class="ctag">Confort</span>`:""}${(i.qtyFull||1)>1?`<span>×${i.qtyFull}</span>`:""}${i.example?"<span>exemple</span>":""}</div></div>
+        </div>${trashBtn(i, "Retirer")}</li>`;
+  const shopSec = z => { const l = shop.filter(i=>(i.zone||"frigo")===z); return l.length ? `<section class="section"><div class="section-h"><span class="pill z-${z}"><span class="dot d-${z}"></span>${ZONES[z]}</span><span class="bubble">${l.length}</span></div>
+       <ul class="rows">${l.map(shopRow).join("")}</ul></section>` : ""; };
+  $("#shop").innerHTML = shop.length
+    ? `<div class="shop-secs"><div class="section-h" style="margin-bottom:-10px"><p class="eyebrow">Ma liste</p><span class="bubble">${shop.length}</span></div>${Object.keys(ZONES).map(shopSec).join("")}</div>`
+    : `<p class="empty"><strong>Rien à racheter.</strong><br>Coche le rond d'un produit dans le stock quand tu l'as fini : il arrive ici.</p>`;
+
+  showTab(tab);
+}
+
+function showTab(t){
+  tab = t; try { localStorage.setItem("frigo.tab", t); } catch {}
+  for (const b of document.querySelectorAll(".nav button")) b.setAttribute("aria-selected", b.dataset.tab===t);
+  $("#view-stock").hidden = t!=="stock"; $("#view-shop").hidden = t!=="shop";
+  const soon = (t==="scan" || t==="recipes") && !hasAI();
+  $("#view-scan").hidden = t!=="scan" || soon; $("#view-recipes").hidden = t!=="recipes" || soon;
+  $("#view-soon").hidden = !soon; if (soon) paintSoon(t);
+  if (t==="confort" && $("#view-confort").hidden) fillConfPage();
+  $("#view-confort").hidden = t!=="confort";
+  $("#fab").hidden = t==="scan" || t==="recipes" || t==="confort";
+  $("#nav-more").classList.toggle("on", t==="scan" || t==="recipes" || t==="confort");
+  if (t==="recipes" && !soon) recipesMaybe();
+}
+/* Scan and recipes need Claude: outside claude.ai they show a "coming soon" screen. */
+function hasAI(){ return !!window.claude?.use; }
+function paintSoon(t){
+  const S = {
+    scan: {e:"Ajouter", t:"Scanner un ticket", a:"🧾", x:"Prends ton ticket de caisse en photo : les produits, les quantités et les dates de péremption se rempliront tout seuls. En attendant, ajoute tes produits avec le bouton + du Stock."},
+    recipes: {e:"Cuisiner", t:"Idées de recettes", a:"🍳", x:"Des idées de plats avec ce que tu as déjà, en commençant par ce qui périme en premier. En attendant, le haut de ton Stock te montre ce qu'il faut manger vite."}
+  }[t];
+  $("#soon-eyebrow").textContent = S.e; $("#soon-title").textContent = S.t; $("#soon-art").textContent = S.a; $("#soon-txt").textContent = S.x;
+}
+
+let toastT;
+/* undo: list of item snapshots to write back (a deleted item is recreated from its snapshot) */
+function toast(msg, undo){
+  const el = $("#toast"); el.innerHTML = ""; el.hidden = false;
+  const t = document.createElement("span"); t.textContent = msg; el.append(t);
+  if (undo?.length) {
+    const b = document.createElement("button"); b.type = "button"; b.className = "undo"; b.textContent = "Annuler";
+    b.onclick = async () => { el.hidden = true; clearTimeout(toastT); for (const it of undo) await put(it); };
+    el.append(b);
+  }
+  clearTimeout(toastT); toastT = setTimeout(()=>el.hidden=true, undo?.length ? 6000 : 3200);
+}
+
+/* From the summary card: show the item in the stock list and make it blink. */
+function goTo(id){
+  const it = items.find(x=>x.id===id); if (!it) return;
+  if (q || searchOpen) closeSearch(false);
+  if (zoneFilter!=="all" && !(zoneFilter==="confort" ? it.confort : zoneFilter===(it.zone||"frigo"))) { zoneFilter = "all"; try { localStorage.setItem("frigo.zone","all"); } catch {} render(); }
+  const row = document.querySelector(`#stock [data-row="${CSS.escape(id)}"]`); if (!row) return;
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  row.scrollIntoView({block:"center", behavior: reduce ? "auto" : "smooth"});
+  row.classList.remove("flash"); void row.offsetWidth; row.classList.add("flash");
+  setTimeout(()=>row.classList.remove("flash"), 1800);
+}
+
+/* Tick the circle, show it checked for a moment, then move the item. */
+function tickThen(id, fn){
+  for (const row of document.querySelectorAll(`[data-row="${CSS.escape(id)}"]`)) row.classList.add("done");
+  setTimeout(fn, 450);
+}
+
+/* ---------- swipe left on a row to reveal the bin ---------- */
+{
+  const OPEN = 84, MAX = 130;
+  let sw = null, swallowClick = false;
+  const closeAll = except => document.querySelectorAll(".swipe.open").forEach(s => { if (s!==except) s.classList.remove("open"); });
+  document.addEventListener("pointerdown", e => {
+    const row = e.target.closest(".swipe>.row");
+    if (!row || (e.pointerType==="mouse" && e.button!==0)) { sw = null; return; }
+    const li = row.parentElement;
+    sw = {li, row, x0:e.clientX, y0:e.clientY, base: li.classList.contains("open") ? -OPEN : 0, mode:null, x:0, id:e.pointerId};
+  });
+  document.addEventListener("pointermove", e => {
+    if (!sw || e.pointerId!==sw.id) return;
+    const dx = e.clientX - sw.x0, dy = e.clientY - sw.y0;
+    if (!sw.mode) {
+      if (Math.abs(dx) > 8 && Math.abs(dx) > Math.abs(dy)) { sw.mode = "h"; closeAll(sw.li); sw.li.classList.add("dragging"); }
+      else if (Math.abs(dy) > 8) { sw = null; return; }
+      else return;
+    }
+    sw.x = Math.max(-MAX, Math.min(0, sw.base + dx));
+    sw.row.style.transform = `translateX(${sw.x}px)`;
+  });
+  const end = e => {
+    if (!sw || e.pointerId!==sw.id) return;
+    if (sw.mode==="h") {
+      const {li, row, x} = sw;
+      li.classList.remove("dragging"); row.style.transform = "";
+      li.classList.toggle("open", x < -OPEN/2);
+      swallowClick = true; setTimeout(()=>{ swallowClick = false; }, 0);
+    }
+    sw = null;
+  };
+  document.addEventListener("pointerup", end);
+  document.addEventListener("pointercancel", e => { if (sw && sw.mode==="h") { sw.li.classList.remove("dragging"); sw.row.style.transform = ""; } sw = null; });
+  // a click right after a swipe, or anywhere while a row is open, only closes it
+  document.addEventListener("click", e => {
+    if (swallowClick) { e.stopPropagation(); e.preventDefault(); swallowClick = false; return; }
+    if (e.target.closest(".trash")) return;
+    const open = document.querySelector(".swipe.open");
+    if (open) { closeAll(); if (open.contains(e.target)) { e.stopPropagation(); e.preventDefault(); } }
+  }, true);
+  document.addEventListener("focusin", e => { const t = e.target.closest(".trash"); if (t) { closeAll(t.parentElement); t.parentElement.classList.add("open"); } });
+}
+
+/* ---------- events ---------- */
+document.addEventListener("click", async e => {
+  const b = e.target.closest("button"); if (!b) return;
+  const find = id => items.find(x=>x.id===id);
+  if (b.dataset.tab) { window.scrollTo(0,0); return showTab(b.dataset.tab); }
+  if (b.dataset.filter) { if (searchOpen) { searchOpen = false; q = ""; $("#q").value = ""; } zoneFilter = b.dataset.filter; try { localStorage.setItem("frigo.zone", zoneFilter); } catch {}
+    render(); const f=$("#filters"); if (f.getBoundingClientRect().top <= 1) window.scrollTo(0, f.offsetTop - 10 + 1); return; }
+  if (b.dataset.used) { const it=find(b.dataset.used); const next=usedOne(it);
+    if (next.status==="shop") tickThen(it.id, async () => { await put(next); toast(`${it.name} → courses`, [it]); });
+    else { await put(next); toast(`${it.name} : ${next.qty} restant${next.qty>1?"s":""}`, [it]); } }
+  if (b.dataset.goto) return goTo(b.dataset.goto);
+  if (b.dataset.drop) { const it=find(b.dataset.drop); await remove(it.id); toast(`${it.name} retiré des courses`, [it]); }
+  if (b.dataset.trash) { const it=find(b.dataset.trash); if (!it) return; const shop = it.status==="shop";
+    await remove(it.id); toast(shop ? `${it.name} retiré des courses` : `${it.name} supprimé`, [it]); return; }
+  if (b.dataset.bought) { const it=find(b.dataset.bought); tickThen(it.id, async () => { const back=await rebuy(it);
+    toast(back.expires ? `${it.name} → stock` : `${it.name} → stock, touche la date`, [it]); }); }
+  if (b.id==="clear-ex") { const ex = items.filter(i=>i.example); for (const it of ex) await remove(it.id); toast(`${ex.length} exemples effacés`, ex); }
+  if (b.id==="ics") exportIcs();
+  if (b.id==="fab") { if (tab==="stock" && scanReady) { $("#fab-menu").hidden ? openMenu() : closeMenu(); } else openSheet(); }
+  if (b.id==="empty-add") { scanReady ? openMenu() : openSheet(); }
+  if (b.id==="fm-manual") { closeMenu(); openSheet(); }
+  if (b.id==="sheet-cancel") closeSheet();
+  if (b.dataset.edit) openEdit(b.dataset.edit);
+});
+/* ---------- edit a product: name, zone, quantity, date (with quick buttons when the native picker won't open) ---------- */
+let editId = null;
+function paintQuick(){
+  const v = $("#ed-date").value;
+  for (const b of document.querySelectorAll("#ed-quick button")) b.setAttribute("aria-pressed", b.dataset.days==="" ? !v : v===addDays(+b.dataset.days));
+}
+function openEdit(id){
+  const it = items.find(x=>x.id===id); if (!it) return;
+  editId = id;
+  $("#ed-name").value = it.name; $("#ed-zone").value = it.zone || "frigo"; $("#ed-conf").checked = !!it.confort;
+  $("#ed-qty").value = qtyOf(it); $("#ed-date").value = it.expires || ""; $("#ed-type").value = it.dateType || "";
+  paintQuick(); paintEdZone();
+  $("#scrim").hidden = false; $("#edit-sheet").hidden = false;
+}
+/* "Autre" products have no date: hide the date fields */
+function paintEdZone(){
+  const a = $("#ed-zone").value==="autre";
+  $("#ed-date").closest("label").hidden = a; $("#ed-type").closest("label").hidden = a;
+  $("#ed-conf-l").hidden = a; $("#ed-autre-note").hidden = !(a && $("#ed-date").value);
+}
+$("#ed-zone").addEventListener("change", paintEdZone);
+$("#add-zone").addEventListener("change", () => { const a = $("#add-zone").value==="autre"; $("#add-date-l").hidden = tab==="shop" || a; $("#add-conf-l").hidden = a; });
+function closeEdit(){ editId = null; $("#edit-sheet").hidden = true; if ($("#sheet").hidden && $("#fab-menu").hidden) $("#scrim").hidden = true; }
+$("#ed-date").addEventListener("input", () => { paintQuick(); paintEdZone(); });
+$("#ed-cancel").addEventListener("click", closeEdit);
+$("#edit-sheet").addEventListener("submit", async e => {
+  e.preventDefault();
+  const it = items.find(x=>x.id===editId); if (!it) return closeEdit();
+  const q = Math.max(1, parseInt($("#ed-qty").value)||1);
+  const next = {...it, name: $("#ed-name").value.trim() || it.name, zone: $("#ed-zone").value, qty:q, qtyFull: Math.max(it.qtyFull||1, q),
+    expires: $("#ed-date").value || null, dateType: $("#ed-type").value || null, // kept (hidden) for "Autre"
+    confort: $("#ed-zone").value!=="autre" && $("#ed-conf").checked};
+  if (next.expires && !it.expires) next.addedAt = it.addedAt || todayISO();
+  closeEdit(); await put(next); toast(`${next.name} modifié`, [it]);
+});
+$("#ed-delete").addEventListener("click", async () => {
+  const it = items.find(x=>x.id===editId); closeEdit(); if (!it) return;
+  await remove(it.id); toast(`${it.name} supprimé`, [it]);
+});
+
+/* add sheet: adds to stock, or to the shopping list when opened from Courses */
+function openSheet(){
+  const toShop = tab==="shop";
+  $("#sheet-title").textContent = toShop ? "Ajouter aux courses" : "Ajouter au stock";
+  $("#add-date-l").hidden = toShop; $("#add-qty-l").hidden = toShop;
+  $("#add-zone").value = !toShop && ZONES[zoneFilter] ? zoneFilter : "frigo"; // follow the active Stock filter
+  $("#add-conf").checked = !toShop && zoneFilter==="confort"; $("#add-conf-l").hidden = $("#add-zone").value==="autre";
+  $("#add-date-l").hidden = toShop || $("#add-zone").value==="autre";
+  $("#scrim").hidden = false; $("#sheet").hidden = false; $("#add-name").focus();
+}
+function closeSheet(){ $("#scrim").hidden = true; $("#sheet").hidden = true; }
+/* FAB menu on Stock: scan, import, paste or add by hand */
+function openMenu(){ $("#fm-photo").hidden = !scanReady; $("#scrim").hidden = false; $("#fab-menu").hidden = false; $("#fab").setAttribute("aria-expanded","true"); }
+function closeMenu(){ $("#fab-menu").hidden = true; $("#fab").setAttribute("aria-expanded","false"); if ($("#sheet").hidden) $("#scrim").hidden = true; }
+$("#scrim").addEventListener("click", () => { closeSheet(); closeMenu(); closeEdit(); });
+document.addEventListener("keydown", e => { if (e.key!=="Escape") return; if (!$("#sheet").hidden) closeSheet(); if (!$("#fab-menu").hidden) closeMenu(); if (!$("#edit-sheet").hidden) closeEdit(); });
+$("#sheet").addEventListener("submit", async e => {
+  e.preventDefault();
+  const name = $("#add-name").value.trim(); if (!name) return;
+  const conf = $("#add-conf").checked && $("#add-zone").value!=="autre";
+  if (tab==="shop") await put({id:newId(), name, zone:$("#add-zone").value, confort:conf, expires:null, dateType:null, status:"shop"});
+  else await addToStock([{name, zone:$("#add-zone").value, confort:conf, expires:$("#add-zone").value==="autre" ? null : ($("#add-date").value||null), qty:+$("#add-qty").value||1}]);
+  $("#add-name").value=""; $("#add-date").value=""; $("#add-qty").value="1"; closeSheet(); toast(`${name} ajouté`);
+});
+
+/* An incoming product that matches something on the shopping list goes back to stock (same doc). */
+async function addToStock(list){
+  const restocked = [];
+  for (const p of list) {
+    const match = items.find(i => i.status==="shop" && norm(i.name)===norm(p.name));
+    const q = Math.max(1, parseInt(p.qty)||1);
+    if (match) { await put({...match, ...p, id:match.id, status:"stock", addedAt:todayISO(), qty:q, qtyFull:q}); restocked.push(p.name); }
+    else await put({id:newId(), status:"stock", dateType:null, ...p, addedAt:todayISO(), qty:q, qtyFull:q});
+  }
+  return restocked;
+}
+
+/* Bought again from the shopping list: back to stock, with the same shelf life as last time when known. */
+async function rebuy(it){
+  let expires = null;
+  if (it.expires && it.addedAt) {
+    const shelf = Math.round((new Date(it.expires+"T00:00:00") - new Date(it.addedAt+"T00:00:00"))/86400000);
+    if (shelf >= 0) expires = addDays(shelf);
+  }
+  const back = {...it, status:"stock", expires, addedAt:todayISO(), qty: it.qtyFull || 1};
+  await put(back);
+  return back;
+}
+
+/* ---------- calendar export ---------- */
+async function exportIcs(){
+  const stamp = new Date().toISOString().replace(/[-:]/g,"").slice(0,15)+"Z";
+  const ev = items.filter(i=>i.status!=="shop" && i.expires && i.zone!=="autre").map(i => {
+    const d = i.expires.replace(/-/g,""), d2 = addDaysFrom(i.expires,1).replace(/-/g,"");
+    return ["BEGIN:VEVENT",`UID:${i.id}@frigo-sans-ouvrir`,`DTSTAMP:${stamp}`,`DTSTART;VALUE=DATE:${d}`,`DTEND;VALUE=DATE:${d2}`,
+      `SUMMARY:${icsEsc(`${i.dateType==="DDM"?"À consommer de préférence":"Péremption"} : ${i.name} (${ZONES[i.zone]||""})`)}`,
+      "BEGIN:VALARM","TRIGGER:-PT12H","ACTION:DISPLAY",`DESCRIPTION:${icsEsc(i.name+" à manger")}`,"END:VALARM","END:VEVENT"].join("\r\n");
+  });
+  const ics = ["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//Frigo sans ouvrir//FR","CALSCALE:GREGORIAN",...ev,"END:VCALENDAR"].join("\r\n");
+  const dl = await window.claude?.use?.("downloads");
+  if (!dl) { // standalone app: regular file download
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([ics], {type:"text/calendar"}));
+    a.download = `frigo-${todayISO()}.ics`; document.body.append(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    return toast("Fichier calendrier téléchargé");
+  }
+  try { await dl.save({filename:`frigo-${todayISO()}.ics`, data:ics}); } catch(err){ if (err?.code!=="cancelled") toast("Fichier non enregistré"); }
+}
+function addDaysFrom(iso,n){ const d=new Date(iso+"T12:00:00"); d.setDate(d.getDate()+n); return d.toISOString().slice(0,10); }
+function icsEsc(s){ return String(s).replace(/[\\;,]/g, m=>"\\"+m).replace(/\n/g,"\\n"); }
+
+/* ---------- receipt scanning ---------- */
+let sample = null, ctl = null, draft = [], scanReady = false, busy = false;
+
+/* Progress card at the top of the Scanner page. step: 1 photo, 2 reading, 3 review. */
+function stage(step, title, msg, {err=false, done=false}={}){
+  busy = !err && !done;
+  const card = $("#scan-card");
+  card.hidden = false; card.classList.toggle("err", err);
+  $("#pick").hidden = true; $("#perm").hidden = true; $("#scan-note").textContent = "";
+  $("#sc-step").textContent = err ? "Problème" : `Étape ${step} sur 3`;
+  $("#sc-title").textContent = title; $("#sc-msg").textContent = msg || "";
+  for (const li of document.querySelectorAll("#steps li")) {
+    const s = +li.dataset.s;
+    li.className = s < step || (done && s === step) ? "done" : s === step ? (err ? "fail" : "now") : "";
+  }
+  $("#scan-stop").hidden = !busy;
+  $("#scan-again").hidden = busy;
+  $("#scan-again").textContent = err ? "Essayer une autre photo" : "Scanner un autre ticket";
+  window.scrollTo({top:0, behavior:"smooth"});
+}
+function scanIdle(note, isErr){
+  busy = false; draft = []; renderReview();
+  $("#scan-card").hidden = true;
+  $("#pick").hidden = !scanReady;
+  $("#scan-note").className = isErr ? "err" : "status"; $("#scan-note").textContent = note || "";
+  if (scanReady) showPerm();
+}
+(async () => {
+  const why = msg => { $("#scan-note").className = "err"; $("#scan-note").textContent = msg; $("#pick").hidden = true; };
+  if (!window.claude?.use) return why("Le scan ne marche que dans Claude. Ouvre ce lien depuis l'app Claude ou claude.ai, connecté·e (pas depuis Safari ou Chrome directement).");
+  sample = await window.claude.use("sample");
+  if (!sample) return why("Claude n'est pas disponible sur cette page ici. Vérifie que tu es connecté·e, ou essaie depuis claude.ai dans le navigateur.");
+  const lim = await sample.limits().catch(()=>null);
+  if (!lim?.images) return why("Cette version de l'app Claude ne permet pas encore d'envoyer une photo depuis une page. Essaie depuis claude.ai dans le navigateur du téléphone, ou mets l'app à jour.");
+  scanReady = true;
+  showPerm();
+})();
+
+/* Permission to use Claude: shown up front so the viewer can grant it before scanning. */
+let perms = null;
+async function showPerm(){
+  perms = perms || await window.claude.use("permissions").catch(()=>null);
+  if (!perms) return;
+  const s = await perms.state("sample").catch(()=>"unavailable");
+  const box = $("#perm"), txt = $("#perm-text"), btn = $("#perm-btn");
+  box.hidden = false; btn.hidden = false;
+  if (s === "granted") { txt.innerHTML = `<span class="ok">✓ Claude est autorisé</span> à lire tes tickets.`; btn.hidden = true; }
+  else if (s === "prompt") { txt.textContent = "Claude doit être autorisé pour lire les tickets."; btn.textContent = "Autoriser"; btn.dataset.act = "request"; }
+  else if (s === "denied") { txt.innerHTML = `<span class="no">Autorisation refusée.</span> Le scan est bloqué.`; btn.textContent = "Modifier l'autorisation"; btn.dataset.act = "manage"; }
+  else { txt.textContent = "L'autorisation n'est pas gérable depuis cette vue."; btn.hidden = true; }
+}
+$("#perm-btn").addEventListener("click", async () => {
+  const act = $("#perm-btn").dataset.act;
+  try {
+    if (act === "request") await perms.request(["sample"]);
+    else await perms.manage();
+  } catch { toast("Impossible d'ouvrir les autorisations ici. Recharge la page et réessaie."); }
+  showPerm();
+});
+(() => {
+})();
+
+const drop = $("#drop");
+drop.addEventListener("dragover", e => { e.preventDefault(); drop.classList.add("drag"); });
+drop.addEventListener("dragleave", () => drop.classList.remove("drag"));
+drop.addEventListener("drop", e => { e.preventDefault(); drop.classList.remove("drag"); const f=e.dataTransfer.files?.[0]; if (f) scan(f); });
+for (const sel of ["#file", "#file-cam"])
+  $(sel).addEventListener("change", e => {
+    const f = e.target.files?.[0];
+    if (f) scan(f); else scanIdle("Aucune photo reçue. Réessaie.", true);
+    e.target.value = "";
+  });
+for (const sel of ["#fm-file", "#fm-cam"])
+  $(sel).addEventListener("change", e => {
+    const f = e.target.files?.[0]; e.target.value = "";
+    closeMenu(); showTab("scan");
+    if (f) scan(f); else scanIdle("Aucune photo reçue. Réessaie.", true);
+  });
+$("#scan-stop").addEventListener("click", () => ctl?.abort());
+$("#scan-again").addEventListener("click", () => scanIdle());
+
+/* Paste fallback: works where the app's webview won't open the camera or photo picker. */
+function pastedImage(e){
+  const dt = e.clipboardData; if (!dt) return null;
+  for (const f of dt.files || []) if (f.type.startsWith("image/")) return f;
+  for (const it of dt.items || []) if (it.kind==="file" && it.type.startsWith("image/")) return it.getAsFile();
+  return null;
+}
+document.addEventListener("paste", e => {
+  const fromMenu = !$("#fab-menu").hidden;
+  if ((tab !== "scan" && !fromMenu) || !scanReady || busy) return;
+  const f = pastedImage(e);
+  e.preventDefault(); for (const t of ["#paste","#fm-paste"]) { $(t).value = ""; $(t).blur(); }
+  if (fromMenu) { closeMenu(); showTab("scan"); }
+  if (f) scan(f);
+  else scanIdle("Le presse-papiers ne contient pas d'image. Dans Photos : ouvre la photo → Partager → Copier la photo, puis recolle ici.", true);
+});
+for (const t of ["#paste","#fm-paste"]) $(t).addEventListener("input", () => { $(t).value = ""; });
+
+const PROMPT = () => `Voici la photo d'un ticket de caisse d'un supermarché français. Aujourd'hui nous sommes le ${todayISO()}.
+Extrais UNIQUEMENT les produits alimentaires et boissons (ignore sacs, hygiène, ménage, remises, totaux, TVA, moyens de paiement).
+Pour chaque produit :
+- "raw" : la ligne telle qu'écrite sur le ticket
+- "name" : un nom clair et court en français, sans marque sauf si utile (ex. "LT 1/2 ECR UHT 6X1L" -> "Lait demi-écrémé")
+- "qty" : nombre de portions qu'on utilise séparément (entier). Ex. un pack de 8 yaourts -> 8, 6 bouteilles de lait -> 6, 2 lignes identiques -> 2, un fromage ou un paquet de pâtes -> 1
+- "zone" : "frigo", "congelo" ou "placard" selon où on le range normalement (surgelés -> congelo)
+- "confort" : true si le produit correspond à cette définition de la confort food, donnée par l'utilisateur : « ${confDef || CONF_DEFAULT} », sinon false
+- "days" : nombre de jours typiques avant péremption à partir d'aujourd'hui pour un produit acheté aujourd'hui (estimation prudente), ou null si non pertinent (sel, épices...)
+- "dateType" : "DLC" pour les produits frais périssables (viande, poisson, laitages frais, plats préparés), "DDM" sinon
+Réponds uniquement avec un tableau JSON, par exemple :
+[{"raw":"YAOURT NAT X8","name":"Yaourts nature","qty":1,"zone":"frigo","confort":false,"days":20,"dateType":"DLC"}]
+Si l'image n'est pas un ticket de caisse lisible, réponds [].`;
+
+/* Re-encode any photo the browser can decode (HEIC from iPhone included) as a JPEG of at most 2000px. */
+async function toJpeg(file){
+  try {
+    const bmp = await createImageBitmap(file);
+    const k = Math.min(1, 2000 / Math.max(bmp.width, bmp.height));
+    const c = document.createElement("canvas"); c.width = Math.round(bmp.width*k); c.height = Math.round(bmp.height*k);
+    c.getContext("2d").drawImage(bmp, 0, 0, c.width, c.height);
+    const blob = await new Promise(r => c.toBlob(r, "image/jpeg", 0.88));
+    return blob || file;
+  } catch { return file; }
+}
+
+async function scan(file){
+  if (!sample || busy) return;
+  draft = []; renderReview();
+  $("#preview").removeAttribute("src");
+  stage(1, "Photo reçue", "Préparation de l'image…");
+  const jpg = await toJpeg(file);
+  $("#preview").src = URL.createObjectURL(jpg);
+  ctl = new AbortController();
+  stage(2, "Claude lit ton ticket", "Ça prend en général 20 à 60 secondes. Tu peux laisser la page ouverte.");
+  try {
+    const out = await sample.json(PROMPT(), {images:[jpg], signal:ctl.signal});
+    const list = Array.isArray(out) ? out : [];
+    draft = list.filter(p=>p && p.name).map((p,i)=>({
+      key:i, take:true, raw:String(p.raw||""), name:String(p.name).trim(),
+      zone: ZONES[p.zone] ? p.zone : "frigo",
+      confort: p.confort===true || p.zone==="confort",
+      expires: Number.isFinite(+p.days) && p.days!==null ? addDays(Math.max(0, Math.round(+p.days))) : null,
+      dateType: p.dateType==="DDM" ? "DDM" : p.dateType==="DLC" ? "DLC" : null,
+      qty: Math.max(1, parseInt(p.qty)||1)
+    }));
+    if (draft.length) stage(3, `${draft.length} produit${draft.length>1?"s":""} trouvé${draft.length>1?"s":""}`, "Vérifie la liste juste en dessous. Les dates sont des estimations.", {done:true});
+    else stage(2, "Aucun produit trouvé", "Essaie une photo plus nette, ticket bien à plat et en entier.", {err:true});
+    renderReview();
+  } catch (e) {
+    const c = e?.code;
+    if (c==="cancelled") return scanIdle("Lecture arrêtée.");
+    stage(2, "La lecture n'a pas marché",
+      c==="not_granted" || c==="sampling_disabled" ? "Claude n'est pas autorisé sur cette page, le scan est désactivé." :
+      c==="not_granted" || c==="sampling_disabled" ? "Claude n'est pas autorisé sur cette page, le scan est désactivé." :
+      c==="image_rejected" ? "Cette photo n'est pas acceptée (format ou taille). Fais une capture d'écran de la photo et envoie la capture." :
+      c==="images_unavailable" ? "Cette vue ne permet pas d'envoyer une photo à Claude. Essaie depuis claude.ai dans le navigateur." :
+      c==="rate_limited" ? "Trop de scans d'affilée ou limite d'usage Claude atteinte. Réessaie plus tard." :
+      c==="session_expired" ? "Ta session Claude a expiré. Reconnecte-toi puis réessaie." :
+      c==="invalid_json" ? "La lecture n'a pas donné une liste exploitable. Réessaie avec une photo plus nette." :
+      `Réessaie. (code : ${c || "inconnu"})`, {err:true});
+  }
+}
+
+function renderReview(){
+  if (!draft.length) { $("#review").innerHTML=""; return; }
+  $("#review").innerHTML = `<section class="section review">
+    <div class="section-h"><p class="eyebrow">À vérifier</p><span class="bubble">${draft.length}</span></div>
+    <ul class="rows">${draft.map(d=>`<li class="row ${d.take?"":"off"}">
+      <input type="checkbox" data-k="${d.key}" data-f="take" ${d.take?"checked":""} aria-label="Garder ${esc(d.name)}" style="width:26px;height:26px;accent-color:var(--green);margin-top:10px">
+      <div class="fields">
+        <input class="full name-in" type="text" data-k="${d.key}" data-f="name" value="${esc(d.name)}" aria-label="Nom">
+        <select data-k="${d.key}" data-f="zone" aria-label="Rangement">${Object.entries(ZONES).map(([v,l])=>`<option value="${v}" ${d.zone===v?"selected":""}>${l}</option>`).join("")}</select>
+        <input type="date" data-k="${d.key}" data-f="expires" value="${d.expires||""}" aria-label="Date de péremption">
+        <label class="full chk"><input type="checkbox" data-k="${d.key}" data-f="confort" ${d.confort?"checked":""}> Confort food</label>
+        <label class="full qty-in">Quantité <input type="number" min="1" max="99" inputmode="numeric" data-k="${d.key}" data-f="qty" value="${d.qty}" aria-label="Quantité de ${esc(d.name)}"></label>
+        <div class="full raw">${esc(d.raw)}${d.dateType?` · ${d.dateType==="DLC"?"date limite":"de préférence"}`:""}</div>
+      </div></li>`).join("")}</ul>
+    <div class="actions" style="margin-top:8px"><button class="btn green" id="commit">Ajouter ${draft.filter(d=>d.take).length} produits au stock</button>
+    <button class="btn plain" id="discard">Annuler</button></div></section>`;
+  $("#commit").onclick = commit;
+  $("#discard").onclick = () => scanIdle();
+  dpEnhance($("#review"));
+}
+$("#review").addEventListener("input", e => {
+  const k = e.target.dataset.k, f = e.target.dataset.f; if (k===undefined) return;
+  const d = draft.find(x=>String(x.key)===k); if (!d) return;
+  d[f] = e.target.type==="checkbox" ? e.target.checked : e.target.value;
+  if (f==="take") $("#commit").textContent = `Ajouter ${draft.filter(d=>d.take).length} produits au stock`;
+});
+async function commit(){
+  const keep = draft.filter(d=>d.take && d.name.trim());
+  $("#commit").disabled = true;
+  try {
+    const back = await addToStock(keep.map(d=>({name:d.name.trim(), zone:d.zone, confort:!!d.confort && d.zone!=="autre", expires:d.expires||null, dateType:d.dateType, qty:+d.qty||1})));
+    toast(`${keep.length} ajoutés${back.length?` · ${back.length} retirés des courses`:""}`);
+    scanIdle(); showTab("stock");
+  } catch { $("#commit").disabled=false; toast("Ajout impossible, réessaie"); }
+}
+
+/* ---------- recipes: regenerated when the stock (or a preference) changes ---------- */
+const RK = "frigo.recipes";
+let rPrefs = {veg:true, quick:false};
+try { rPrefs = {...rPrefs, ...JSON.parse(localStorage.getItem("frigo.rprefs")||"{}")}; } catch {}
+let rCache = null; try { rCache = JSON.parse(localStorage.getItem(RK)||"null"); } catch {}
+let rBusy = false, rTimer = null, rCtl = null, rSeen = [];
+const stockNow = () => items.filter(i=>i.status!=="shop" && i.zone!=="autre").sort(byDate); // "Autre" never counts for recipes
+const rSig = () => JSON.stringify([rPrefs, stockNow().map(i=>[i.id, i.name, i.expires])]);
+
+function paintRPrefs(){ $("#r-veg").setAttribute("aria-pressed", rPrefs.veg); $("#r-quick").setAttribute("aria-pressed", rPrefs.quick); }
+paintRPrefs();
+function setPref(k){ rPrefs[k] = !rPrefs[k]; try { localStorage.setItem("frigo.rprefs", JSON.stringify(rPrefs)); } catch {} paintRPrefs(); recipesMaybe(true); }
+$("#r-veg").addEventListener("click", () => setPref("veg"));
+$("#r-quick").addEventListener("click", () => setPref("quick"));
+$("#r-more").addEventListener("click", () => { rSeen = [...rSeen, ...(rCache?.list||[]).map(r=>r.title)].slice(-16); generateRecipes(true); });
+
+/* Called on every render and when the tab opens: refresh only if the stock changed, after a short pause. */
+function recipesMaybe(now){
+  if (tab !== "recipes") return;
+  drawRecipes();
+  if (!dataReady) return;
+  if (!stockNow().length) return;
+  if (rCache && rCache.sig === rSig()) return;
+  clearTimeout(rTimer);
+  rTimer = setTimeout(() => generateRecipes(false), now ? 0 : 1200);
+}
+
+function recipePrompt(n, exclude){
+  const lines = stockNow().map(i => { const d = daysLeft(i.expires); return `${i.id} | ${i.name} | ${ZONES[i.zone]||"Frigo"} | ${d===null?"sans date":d<0?"périmé":d===0?"aujourd'hui":d===1?"demain":"dans "+d+" jours"}`; }).join("\n");
+  return `Tu aides une personne à cuisiner avec ce qu'elle a déjà chez elle, pour ne rien gaspiller.
+Voici son stock (id | produit | rangement | péremption) :
+${lines}
+
+Propose ${n===1 ? "1 idée de recette simple" : n+" idées de recettes simples"}, du quotidien, en français.
+- Utilise en priorité les produits qui périment bientôt (aujourd'hui, demain, dans 2-3 jours). Évite les produits "périmé" sauf s'ils sont en DDM.
+- ${rPrefs.veg ? "Recettes 100 % végétariennes (ni viande ni poisson)." : "Toutes recettes acceptées."}
+- ${rPrefs.quick ? "Moins de 20 minutes." : "Moins de 45 minutes."}
+- Suppose qu'elle a les basiques : sel, poivre, huile, vinaigre, farine, sucre, épices courantes. Ne les liste pas.
+- Au plus 3 ingrédients manquants par recette, et préfère zéro.
+- Étapes courtes et concrètes (3 à 6), faciles à suivre pour quelqu'un de fatigué.${exclude.length ? "\n- Propose quelque chose de vraiment différent de : " + exclude.join(", ") + "." : ""}
+Réponds uniquement avec un tableau JSON${n===1?" d'un seul élément":""} :
+[{"title":"…","minutes":15,"uses":["id1","id2"],"missing":["…"],"why":"une phrase : ce qu'elle sauve","steps":["…","…"]}]`;
+}
+function parseRecipes(out){
+  const ids = new Set(stockNow().map(i=>i.id));
+  return (Array.isArray(out)?out:[out]).filter(r=>r&&r.title).map(r=>({
+    title:String(r.title), minutes:Math.round(+r.minutes)||null, why:String(r.why||""),
+    uses:(Array.isArray(r.uses)?r.uses:[]).map(String).filter(id=>ids.has(id)),
+    missing:(Array.isArray(r.missing)?r.missing:[]).map(String).slice(0,3),
+    steps:(Array.isArray(r.steps)?r.steps:[]).map(String).slice(0,8)
+  }));
+}
+function recipeError(e, again){
+  $("#r-status").className="err";
+  $("#r-status").textContent = e?.code==="not_granted" ? "Claude n'est pas autorisé sur cette page. Autorise-le dans l'onglet Scanner." :
+    e?.code==="rate_limited" ? "Limite d'usage Claude atteinte. Réessaie plus tard." : `Impossible de trouver une idée pour l'instant. ${again}`;
+}
+const saveR = () => { try { localStorage.setItem(RK, JSON.stringify(rCache)); } catch {} };
+const getSample = async () => {
+  const s = sample || await window.claude?.use?.("sample");
+  if (!s) { $("#r-status").className="err"; $("#r-status").textContent = "Les idées de recettes ne marchent que dans Claude, connecté·e."; }
+  return s;
+};
+
+async function generateRecipes(){
+  const s = await getSample(); if (!s) return;
+  rCtl?.abort(); rCtl = new AbortController(); rBusy = true; rOne.clear(); drawRecipes();
+  const sig = rSig();
+  try {
+    const out = await s.json(recipePrompt(4, rSeen), {signal:rCtl.signal, modelTier:"quick", cache:false});
+    rCache = {sig, list:parseRecipes(out).slice(0,4), at:Date.now()}; saveR();
+    $("#r-status").textContent = "";
+  } catch (e) { if (e?.code === "cancelled") return; recipeError(e, "Touche « Proposer 4 nouvelles recettes » pour réessayer."); }
+  finally { rBusy = false; if (tab==="recipes") drawRecipes(); }
+}
+
+/* Replace one card only; the others stay as they are. */
+const rOne = new Set();
+async function regenerateOne(k){
+  if (rBusy || rOne.has(k) || !rCache?.list?.[k]) return;
+  const s = await getSample(); if (!s) return;
+  rOne.add(k); drawRecipes();
+  const old = rCache.list[k];
+  rSeen = [...rSeen, old.title].slice(-16);
+  const exclude = [...new Set([...rSeen, ...rCache.list.map(r=>r.title)])];
+  try {
+    const [r] = parseRecipes(await s.json(recipePrompt(1, exclude), {modelTier:"quick", cache:false}));
+    if (r && rCache.list[k] === old) { rCache.list[k] = r; saveR(); }
+    $("#r-status").textContent = "";
+  } catch (e) { recipeError(e, "Réessaie avec « Une autre idée »."); }
+  finally { rOne.delete(k); if (tab==="recipes") drawRecipes(); }
+}
+
+function drawRecipes(){
+  const stock = stockNow();
+  const box = $("#recipes");
+  $("#r-more").hidden = true;
+  if (!stock.length) { box.innerHTML = `<p class="empty"><strong>Ton stock est vide.</strong><br>Ajoute des produits ou scanne un ticket : les idées de recettes apparaîtront ici.</p>`; return; }
+  const stale = rCache && rCache.sig !== rSig();
+  if (rBusy) $("#r-status").textContent = rCache ? "Ton stock a changé, je mets les idées à jour…" : "Je cherche des idées avec ce que tu as…";
+  if (!rCache?.list?.length) { box.innerHTML = rBusy ? `<div class="rskel"></div><div class="rskel"></div><div class="rskel"></div>` : ""; return; }
+  $("#r-more").hidden = rBusy;
+  const byId = Object.fromEntries(items.map(i=>[i.id,i]));
+  box.innerHTML = rCache.list.map((r,k) => {
+    const used = r.uses.map(id=>byId[id]).filter(i=>i && i.status!=="shop");
+    const loading = rOne.has(k);
+    return `<article class="rcard c${k%4} ${loading?"loading":""}" style="${rBusy||stale?"opacity:.6":""}" aria-busy="${loading}">
+      <h3>${loading ? "Je cherche une autre idée…" : esc(r.title)}</h3>
+      ${r.why?`<p class="why">${esc(r.why)}</p>`:""}
+      <div class="rmeta">${r.minutes?`<span class="pill">⏱ ${r.minutes} min</span>`:""}${used.map(i=>{ const n=daysLeft(i.expires); const urg=n!==null&&n<=2; return `<span class="pill ${urg?"urg":""}">${esc(i.name)}${urg?` · ${due(i).txt}`:""}</span>`; }).join("")}</div>
+      ${r.missing.length?`<p class="rmiss">Il te manque : ${r.missing.map(esc).join(", ")}</p>`:""}
+      <details><summary>Voir les étapes</summary><ol>${r.steps.map(st=>`<li>${esc(st)}</li>`).join("")}</ol></details>
+      <div class="ractions">
+        ${used.length?`<button class="btn cook" data-cook="${k}" type="button"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>J'ai cuisiné ça</button>`:""}
+        <button class="btn again" data-again="${k}" type="button" ${rBusy?"disabled":""}>↻ Une autre idée</button>
+      </div>
+      ${used.length?`<div class="cooked" id="cook-${k}" hidden>
+        <span style="font-weight:600;font-size:.9rem">Qu'est-ce que tu as utilisé ? (un de chaque)</span>
+        ${used.map(i=>`<label><input type="checkbox" data-cookitem="${i.id}" checked>${esc(i.name)}</label>`).join("")}
+        <div class="actions"><button class="btn green" data-cookok="${k}" type="button">Mettre à jour le stock</button><button class="btn plain" data-cookno="${k}" type="button">Annuler</button></div>
+      </div>`:""}
+    </article>`;
+  }).join("");
+}
+
+document.addEventListener("click", async e => {
+  const b = e.target.closest("button"); if (!b) return;
+  if (b.dataset.again) return regenerateOne(+b.dataset.again);
+  if (b.dataset.cook) { $("#cook-"+b.dataset.cook).hidden = false; b.hidden = true; }
+  if (b.dataset.cookno) { $("#cook-"+b.dataset.cookno).hidden = true; $(`[data-cook="${b.dataset.cookno}"]`).hidden = false; }
+  if (b.dataset.cookok) {
+    const ids = [...$("#cook-"+b.dataset.cookok).querySelectorAll("input:checked")].map(x=>x.dataset.cookitem);
+    const prev = ids.map(id=>items.find(x=>x.id===id)).filter(Boolean);
+    for (const it of prev) await put(usedOne(it));
+    toast(prev.length ? "Stock mis à jour. Bon appétit !" : "Rien de changé", prev);
+  }
+});
+
+/* Light / dark toggle: overrides the system theme, remembered on this device. */
+const SUN = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>`;
+const MOON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>`;
+const isDark = () => { const t = document.documentElement.dataset.theme; return t ? t==="dark" : matchMedia("(prefers-color-scheme: dark)").matches; };
+function paintThemeBtns(){
+  const dark = isDark();
+  for (const b of document.querySelectorAll(".theme-btn")) { b.innerHTML = dark ? SUN : MOON; b.setAttribute("aria-label", dark ? "Passer en mode clair" : "Passer en mode sombre"); b.title = b.getAttribute("aria-label"); }
+}
+try { const t = localStorage.getItem("frigo.theme"); if (t) document.documentElement.dataset.theme = t; } catch {}
+paintThemeBtns();
+matchMedia("(prefers-color-scheme: dark)").addEventListener?.("change", paintThemeBtns);
+document.addEventListener("click", e => {
+  if (!e.target.closest(".theme-btn")) return;
+  const next = isDark() ? "light" : "dark";
+  document.documentElement.dataset.theme = next;
+  try { localStorage.setItem("frigo.theme", next); } catch {}
+  paintThemeBtns();
+});
+
+/* ---------- onboarding (first visit) + "?" button to replay it ---------- */
+const OB = [
+  {art:"🧊", c:"green", t:"Ton frigo, sans l'ouvrir", x:"Garde un œil sur ce que tu as chez toi et sur ce qui va bientôt périmer, où que tu sois. L'onglet Plus, dans la barre du bas, regroupe le reste : aide, mode sombre…"},
+  {art:"🧾", c:"blue", t:"Ajoute tes produits", x:() => "Appuie sur le bouton + pour ajouter un produit à la main." + (hasAI() ? " Tu peux aussi scanner ton ticket de caisse depuis l'onglet Plus : produits, quantités et dates sont remplis pour toi." : " Bientôt, tu pourras aussi scanner ton ticket de caisse depuis l'onglet Plus.")},
+  {art:"⏰", c:"yellow", t:"Rien ne se perd", x:"Ce qui périme dans les 2 jours s'affiche en haut du Stock. Touche une date pour la corriger, et filtre par rangement : frigo, congélo, placard…"},
+  {art:"🛒", c:"grey", t:"Fini ? Coche-le", x:"Quand tu termines un produit, coche son rond : il part directement dans ta liste de Courses. Pour supprimer un produit, du stock comme des courses, glisse-le vers la gauche."},
+  {art:"🍳", c:"lilac", t:"Des idées de recettes", x:() => "Dans l'onglet Plus, « Idées de recettes » te propose des plats avec ce que tu as déjà, en commençant par ce qui périme en premier." + (hasAI() ? "" : " Cette fonction arrive bientôt.")},
+  {art:"🍕", c:"pink", t:"Ta confort food", x:"C'est une étiquette en plus du rangement : des lasagnes restent dans le Frigo, avec le badge Confort. Choisis ce que « confort food » veut dire pour toi dans Plus › Ma confort food. Tu retrouves ces produits sous le filtre Confort food."}
+];
+let obI = 0, obLast = null;
+function obPaint(){
+  const s = OB[obI], last = obI===OB.length-1;
+  $("#ob-art").className = "ob-art "+s.c; $("#ob-art").textContent = s.art;
+  $("#ob-title").textContent = s.t; $("#ob-txt").textContent = typeof s.x==="function" ? s.x() : s.x;
+  $("#ob-count").textContent = `${obI+1} / ${OB.length}`;
+  $("#ob-dots").innerHTML = OB.map((_,i)=>`<span class="${i===obI?"on":""}"></span>`).join("");
+  $("#ob-prev").hidden = obI===0; $("#ob-skip").hidden = last;
+  $("#ob-next").textContent = last ? "C'est parti" : "Suivant";
+  document.querySelector("#ob .ob-body").scrollTop = 0;
+}
+/* measure every step at its natural height and lock the card to the tallest one */
+function obFit(){
+  const card = document.querySelector("#ob .ob-card"), keep = obI;
+  card.style.height = "auto"; let h = 0;
+  for (obI = 0; obI < OB.length; obI++) { obPaint(); h = Math.max(h, card.scrollHeight); }
+  obI = keep; obPaint(); card.style.height = Math.ceil(h) + 2 + "px";
+}
+addEventListener("resize", () => { if (!$("#ob").hidden) obFit(); });
+function obOpen(){ obLast = document.activeElement; obI = 0; $("#ob").hidden = false; obFit(); document.body.style.overflow = "hidden"; $("#ob-next").focus(); }
+function obClose(){ $("#ob").hidden = true; document.body.style.overflow = ""; try { localStorage.setItem("frigo.onboarded","1"); } catch {} obLast?.focus?.(); maybeSwipeHint(); }
+$("#ob-next").addEventListener("click", () => { if (obI===OB.length-1) obClose(); else { obI++; obPaint(); } });
+$("#ob-prev").addEventListener("click", () => { if (obI>0) { obI--; obPaint(); } });
+$("#ob-skip").addEventListener("click", obClose);
+$("#ob").addEventListener("click", e => { if (e.target.id==="ob") obClose(); });
+document.addEventListener("keydown", e => {
+  if ($("#ob").hidden) return;
+  if (e.key==="Escape") obClose();
+  else if (e.key==="ArrowRight") $("#ob-next").click();
+  else if (e.key==="ArrowLeft") $("#ob-prev").click();
+});
+{ let x0 = null;
+  $("#ob").addEventListener("touchstart", e => { x0 = e.touches[0].clientX; }, {passive:true});
+  $("#ob").addEventListener("touchend", e => { if (x0===null) return; const dx = e.changedTouches[0].clientX - x0; x0 = null;
+    if (dx < -50 && obI < OB.length-1) { obI++; obPaint(); } else if (dx > 50 && obI > 0) { obI--; obPaint(); } }, {passive:true}); }
+/* kebab menu: scan, recipes, help, dark mode */
+const KEBAB = `<svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>`;
+let kAnchor = null;
+function kPaint(){ const ai = hasAI(); $("#kmenu").querySelectorAll(".soon-tag").forEach(s => s.hidden = ai); $("#k-theme").setAttribute("aria-checked", isDark()); }
+function kClose(refocus){ $("#kmenu").hidden = true; kAnchor?.setAttribute("aria-expanded","false"); if (refocus) kAnchor?.focus(); kAnchor = null; }
+function kOpen(a){
+  if (!$("#kmenu").hidden && kAnchor===a) return kClose();
+  kAnchor?.setAttribute("aria-expanded","false"); kAnchor = a; kPaint();
+  const m = $("#kmenu"), r = a.getBoundingClientRect(), vw = document.documentElement.clientWidth;
+  m.style.top = "auto"; m.style.left = "auto";
+  m.style.bottom = (window.innerHeight - r.top + 8) + "px";
+  m.style.right = Math.max(12, vw - r.right + (r.width/2) - 40) + "px";
+  m.hidden = false; a.setAttribute("aria-expanded","true"); m.querySelector("button").focus({preventScroll:true});
+}
+{ const h = $("#nav-more"); h.addEventListener("click", e => { e.stopPropagation(); kOpen(h); }); }
+$("#kmenu").addEventListener("click", e => {
+  const b = e.target.closest("button[data-k]"); if (!b) return; e.stopPropagation();
+  const k = b.dataset.k;
+  if (k==="theme") { const next = isDark() ? "light" : "dark"; document.documentElement.dataset.theme = next; try { localStorage.setItem("frigo.theme", next); } catch {} paintThemeBtns(); kPaint(); return; }
+  kClose();
+  if (k==="help") obOpen();
+  else if (k==="confort") openConfPage();
+  else { window.scrollTo(0,0); showTab(k); }
+});
+$("#kmenu").addEventListener("keydown", e => {
+  const bs = [...$("#kmenu").querySelectorAll("button")], i = bs.indexOf(document.activeElement);
+  if (e.key==="ArrowDown") { e.preventDefault(); bs[(i+1)%bs.length].focus(); }
+  else if (e.key==="ArrowUp") { e.preventDefault(); bs[(i-1+bs.length)%bs.length].focus(); }
+  else if (e.key==="Tab") kClose();
+});
+document.addEventListener("click", e => { if (!$("#kmenu").hidden && !e.target.closest("#kmenu")) kClose(); });
+document.addEventListener("keydown", e => { if (e.key==="Escape" && !$("#kmenu").hidden) kClose(true); });
+addEventListener("scroll", () => { if (!$("#kmenu").hidden) kClose(); }, {passive:true});
+addEventListener("resize", () => { if (!$("#kmenu").hidden) kClose(); });
+let obSeen = false; try { obSeen = localStorage.getItem("frigo.onboarded")==="1"; } catch {}
+if (!obSeen) obOpen();
+
+/* ---------- custom date picker: the phone's native one doesn't open inside the app ---------- */
+const DP_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>`;
+const vDesc = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value");
+let dpInp = null, dpMonth = null;
+const isoOf = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+function dpLabel(inp){
+  const b = inp._dpBtn; if (!b) return; const v = vDesc.get.call(inp);
+  const opts = {weekday:"short", day:"numeric", month:"short"}; if (v && v.slice(0,4)!==todayISO().slice(0,4)) opts.year = "numeric";
+  b.querySelector(".dp-v").textContent = v ? new Date(v+"T12:00:00").toLocaleDateString("fr-FR", opts) : "Choisir une date";
+  b.classList.toggle("empty", !v);
+}
+function dpEnhance(root){
+  for (const inp of root.querySelectorAll('input[type="date"]:not(.dp-native)')) {
+    inp.classList.add("dp-native");
+    const b = document.createElement("button"); b.type = "button"; b.className = "dp-btn";
+    b.setAttribute("aria-label", inp.getAttribute("aria-label") || "Date de péremption");
+    b.innerHTML = `${DP_ICON}<span class="dp-v"></span>`;
+    b.addEventListener("click", e => { e.preventDefault(); dpOpen(inp); });
+    inp.after(b); inp._dpBtn = b;
+    Object.defineProperty(inp, "value", {configurable:true, get(){ return vDesc.get.call(this); }, set(v){ vDesc.set.call(this, v); dpLabel(this); }});
+    dpLabel(inp);
+  }
+}
+function dpPaint(){
+  const y = dpMonth.getFullYear(), m = dpMonth.getMonth(), sel = dpInp?.value || "", today = todayISO();
+  const g = $("#dp-grid"), my = $("#dp-month"), year = dpMode==="year";
+  $("#dp .dp-card").classList.toggle("ymode", year); g.classList.toggle("years", year);
+  const [prev, next] = $("#dp").querySelectorAll("[data-dpm]");
+  prev.setAttribute("aria-label", year ? "Années précédentes" : "Mois précédent");
+  next.setAttribute("aria-label", year ? "Années suivantes" : "Mois suivant");
+  if (year) {
+    my.textContent = `${dpY0} – ${dpY0+14}`; my.setAttribute("aria-label", "Revenir au calendrier");
+    const nowY = new Date().getFullYear(); let h = "";
+    for (let yy=dpY0; yy<dpY0+15; yy++) h += `<button type="button" class="dp-year${yy===y?" sel":""}${yy===nowY?" now":""}" data-dpyear="${yy}"${yy===y?' aria-current="true"':""}>${yy}</button>`;
+    g.innerHTML = h; return;
+  }
+  const label = dpMonth.toLocaleDateString("fr-FR", {month:"long", year:"numeric"});
+  my.textContent = label; my.setAttribute("aria-label", `${label}, choisir l'année`);
+  const lead = (new Date(y,m,1).getDay()+6)%7, n = new Date(y,m+1,0).getDate();
+  let h = "<span></span>".repeat(lead);
+  for (let d=1; d<=n; d++) {
+    const dt = new Date(y,m,d), v = isoOf(dt);
+    h += `<button type="button" class="dp-day${v===sel?" sel":""}${v===today?" today":""}" data-dpv="${v}" aria-label="${dt.toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"})}"${v===sel?' aria-current="date"':""}>${d}</button>`;
+  }
+  h += "<span></span>".repeat(42 - lead - n); // always 6 rows: the height never changes
+  g.innerHTML = h;
+}
+let dpMode = "day", dpY0 = 0;
+function dpOpen(inp){
+  dpInp = inp; const v = inp.value, base = v ? new Date(v+"T12:00:00") : new Date();
+  dpMonth = new Date(base.getFullYear(), base.getMonth(), 1); dpMode = "day"; dpPaint();
+  $("#dp").hidden = false;
+  ($("#dp-grid .sel") || $("#dp-grid .today") || $("#dp .dp-x")).focus({preventScroll:true});
+}
+function dpClose(){ $("#dp").hidden = true; dpInp?._dpBtn?.focus({preventScroll:true}); dpInp = null; }
+function dpSet(v){
+  const inp = dpInp; if (!inp) return; inp.value = v;
+  inp.dispatchEvent(new Event("input", {bubbles:true})); inp.dispatchEvent(new Event("change", {bubbles:true}));
+  dpClose();
+}
+$("#dp").addEventListener("click", e => {
+  if (e.target.id==="dp") return dpClose();
+  const b = e.target.closest("button"); if (!b) return; e.stopPropagation();
+  if (b.dataset.dpv) dpSet(b.dataset.dpv);
+  else if (b.dataset.dpyear) { dpMonth = new Date(+b.dataset.dpyear, dpMonth.getMonth(), 1); dpMode = "day"; dpPaint(); $("#dp-month").focus({preventScroll:true}); }
+  else if ("dpy" in b.dataset) {
+    if (dpMode==="day") { dpMode = "year"; dpY0 = dpMonth.getFullYear() - 2; } else dpMode = "day";
+    dpPaint();
+  }
+  else if (b.dataset.dpq !== undefined) dpSet(addDays(+b.dataset.dpq));
+  else if (b.dataset.dpm) {
+    if (dpMode==="year") dpY0 += 15 * +b.dataset.dpm;
+    else dpMonth = new Date(dpMonth.getFullYear(), dpMonth.getMonth() + +b.dataset.dpm, 1);
+    dpPaint();
+  }
+  else if ("dpclear" in b.dataset) dpSet("");
+  else if ("dpx" in b.dataset) dpClose();
+});
+document.addEventListener("keydown", e => { if (e.key==="Escape" && !$("#dp").hidden) { e.stopPropagation(); dpClose(); } }, true);
+dpEnhance(document);
+
+loadLocal();
+})();
+</script>
+
+<script>
+/* offline + install (PWA) */
+if ("serviceWorker" in navigator && location.protocol !== "file:") addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
+</script>
+</body>
+</html>
