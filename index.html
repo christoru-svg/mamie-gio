@@ -427,6 +427,7 @@ h1{font-family:var(--font-display);font-weight:800;font-size:2.3rem;letter-spaci
 .seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 4px rgba(0,0,0,.1)}
 .tile.pink{background:var(--pink-bg);color:var(--pink-fg)} .tile.pink .ic{background:var(--pink-fg);color:#fff}
 .rv-dup{font-size:.84rem;font-weight:600;color:var(--soft)}
+.sheet-or{margin:-4px 0 -6px;text-align:center;font-size:.82rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
 /* courses: basket */
 .cart{padding-top:6px;border-top:1px dashed var(--ring)}
 .cart-done{align-self:stretch;margin-top:6px}
@@ -725,7 +726,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     </div>
     <div class="tile mini lilac">
       <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="12" height="17" rx="2"/><path d="M9 4V3h6v1M9 10h6M9 14h4"/></svg></span>
-      <span>Coller un ticket<small>Appui long ici → Coller</small></span>
+      <span>Coller une photo<small>Ticket ou frigo · appui long ici → Coller</small></span>
       <textarea id="fm-paste" class="tile-input paste-input" aria-label="Zone pour coller la photo du ticket" inputmode="none"></textarea>
     </div>
   </div>
@@ -736,6 +737,12 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
 </div>
 <form class="sheet" id="sheet" hidden>
   <h2 id="sheet-title">Ajouter au stock</h2>
+  <div class="tile mini lilac" id="sheet-paste-tile">
+    <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="12" height="17" rx="2"/><path d="M9 4V3h6v1M9 10h6M9 14h4"/></svg></span>
+    <span>Coller une photo<small>Ticket de caisse ou frigo · appui long ici → Coller</small></span>
+    <textarea id="sh-paste" class="tile-input paste-input" aria-label="Zone pour coller une photo de ticket ou de frigo" inputmode="none"></textarea>
+  </div>
+  <p class="sheet-or" id="sheet-or">ou à la main</p>
   <label>Produit<input id="add-name" type="text" placeholder="ex. Yaourts nature" autocomplete="off"></label>
   <div class="two">
     <label>Rangement<select id="add-zone"><option value="frigo">Frigo</option><option value="congelo">Congélo</option><option value="placard">Placard</option><option value="autre">Autre (sans date)</option></select></label>
@@ -1222,6 +1229,7 @@ function openSheet(){
   $("#add-zone").value = !toShop && ZONES[zoneFilter] ? zoneFilter : "frigo"; // follow the active Stock filter
   $("#add-conf").checked = !toShop && zoneFilter==="confort"; $("#add-conf-l").hidden = $("#add-zone").value==="autre";
   $("#add-date-l").hidden = toShop || $("#add-zone").value==="autre";
+  $("#sheet-paste-tile").hidden = $("#sheet-or").hidden = toShop || !scanReady;
   $("#scrim").hidden = false; $("#sheet").hidden = false; $("#add-name").focus();
 }
 function closeSheet(){ $("#scrim").hidden = true; $("#sheet").hidden = true; }
@@ -1371,7 +1379,7 @@ let scanMode = "ticket";
 function setScanMode(m){
   scanMode = m;
   document.querySelectorAll("#scan-mode button").forEach(b => b.setAttribute("aria-pressed", b.dataset.mode===m));
-  $("#scan-h1").textContent = m==="frigo" ? "Photographier le frigo" : "Scanner un ticket";
+  $("#scan-h1").textContent = m==="frigo" ? "Photographier le frigo" : m==="auto" ? "Analyser une photo" : "Scanner un ticket";
   $("#cam-hint").textContent = m==="frigo" ? "Porte ouverte, bien éclairé, une étagère ou tout le frigo" : "Ticket bien à plat, toute la longueur";
 }
 $("#scan-mode").addEventListener("click", e => { const b = e.target.closest("[data-mode]"); if (b) setScanMode(b.dataset.mode); });
@@ -1385,15 +1393,16 @@ function pastedImage(e){
   return null;
 }
 document.addEventListener("paste", e => {
-  const fromMenu = !$("#fab-menu").hidden;
-  if ((tab !== "scan" && !fromMenu) || !scanReady || busy) return;
+  const fromMenu = !$("#fab-menu").hidden, fromSheet = !$("#sheet").hidden && tab!=="shop";
+  if ((tab !== "scan" && !fromMenu && !fromSheet) || !scanReady || busy) return;
   const f = pastedImage(e);
-  e.preventDefault(); for (const t of ["#paste","#fm-paste"]) { $(t).value = ""; $(t).blur(); }
-  if (fromMenu) { closeMenu(); showTab("scan"); }
+  if (fromSheet && !f) return; // plain text pasted into the name field: leave it alone
+  e.preventDefault(); for (const t of ["#paste","#fm-paste","#sh-paste"]) { $(t).value = ""; $(t).blur(); }
+  if (fromMenu || fromSheet) { closeMenu(); closeSheet(); setScanMode("auto"); showTab("scan"); }
   if (f) scan(f);
   else scanIdle("Le presse-papiers ne contient pas d'image. Dans Photos : ouvre la photo → Partager → Copier la photo, puis recolle ici.", true);
 });
-for (const t of ["#paste","#fm-paste"]) $(t).addEventListener("input", () => { $(t).value = ""; });
+for (const t of ["#paste","#fm-paste","#sh-paste"]) $(t).addEventListener("input", () => { $(t).value = ""; });
 
 const PROMPT_FRIGO = () => `Voici une photo de l'intérieur d'un frigo, d'un congélateur ou d'un placard, en France. Aujourd'hui nous sommes le ${todayISO()}.
 Liste les aliments et boissons que tu vois vraiment (pas les plats vides, ustensiles ni emballages vides).
@@ -1409,6 +1418,21 @@ Pour chaque aliment :
 Réponds uniquement avec un tableau JSON, par exemple :
 [{"name":"Poivron rouge","qty":2,"zone":"frigo","confort":false,"days":5,"dateType":"DLC","doute":false,"raison":""}]
 Si tu ne vois aucun aliment, réponds [].`;
+
+/* the rule lines of a prompt: everything between its first line and its "Réponds…" answer format */
+const promptRules = t => { const l = t.split("\n"); const end = l.findIndex(x => x.startsWith("Réponds")); return l.slice(1, end < 0 ? undefined : end).join("\n"); };
+/* Pasted from the add sheet or the + menu: the photo is either a receipt or the inside of the fridge */
+const PROMPT_AUTO = () => `Cette photo montre soit un ticket de caisse d'un supermarché français, soit l'intérieur d'un frigo, d'un congélateur ou d'un placard. Aujourd'hui nous sommes le ${todayISO()}.
+Détermine d'abord ce que c'est, puis suis les consignes qui correspondent.
+
+Si c'est un ticket, voici les consignes :
+${promptRules(PROMPT())}
+
+Si c'est un frigo, un congélateur ou un placard, voici les consignes :
+${promptRules(PROMPT_FRIGO())}
+
+Réponds uniquement avec un objet JSON de cette forme : {"type":"ticket" ou "frigo","produits":[…le tableau décrit dans les consignes…]}.
+Si la photo ne montre ni l'un ni l'autre, réponds {"type":"autre","produits":[]}.`;
 
 const PROMPT = () => `Voici la photo d'un ticket de caisse d'un supermarché français. Aujourd'hui nous sommes le ${todayISO()}.
 Extrais UNIQUEMENT les produits alimentaires et boissons (ignore sacs, hygiène, ménage, remises, totaux, TVA, moyens de paiement).
@@ -1446,11 +1470,12 @@ async function scan(file){
   const jpg = await toJpeg(file);
   $("#preview").src = URL.createObjectURL(jpg);
   ctl = new AbortController();
-  const fridge = scanMode==="frigo";
-  stage(2, fridge ? "Claude regarde ton frigo" : "Claude lit ton ticket", "Ça prend en général 20 à 60 secondes. Tu peux laisser la page ouverte.");
+  const fridge = scanMode==="frigo", auto = scanMode==="auto";
+  stage(2, auto ? "Claude analyse ta photo" : fridge ? "Claude regarde ton frigo" : "Claude lit ton ticket", "Ça prend en général 20 à 60 secondes. Tu peux laisser la page ouverte.");
   try {
-    const out = await sample.json(fridge ? PROMPT_FRIGO() : PROMPT(), {images:[jpg], signal:ctl.signal});
-    const list = Array.isArray(out) ? out : [];
+    const out = await sample.json(auto ? PROMPT_AUTO() : fridge ? PROMPT_FRIGO() : PROMPT(), {images:[jpg], signal:ctl.signal});
+    const kind = auto ? (out?.type==="frigo" ? "Photo du frigo reconnue. " : out?.type==="ticket" ? "Ticket de caisse reconnu. " : "") : "";
+    const list = Array.isArray(out) ? out : Array.isArray(out?.produits) ? out.produits : [];
     draft = list.filter(p=>p && p.name).map((p,i)=>({
       key:i, take:true, raw:String(p.raw||""), name:String(p.name).trim(),
       zone: ZONES[p.zone] ? p.zone : "frigo",
@@ -1462,7 +1487,7 @@ async function scan(file){
     })).map(d => { const dup = items.some(i => i.status!=="shop" && norm(i.name)===norm(d.name)); return dup ? {...d, dup:true, take:false} : d; })
       .sort((a,b) => (b.unsure - a.unsure) || (a.dup ? 1 : 0) - (b.dup ? 1 : 0)); // to check first, already known last
     const dups = draft.filter(d=>d.dup).length;
-    if (draft.length) stage(3, `${draft.length} produit${draft.length>1?"s":""} trouvé${draft.length>1?"s":""}`, (dups ? `${dups} déjà dans ton stock, décoché${dups>1?"s":""}. ` : "") + "Vérifie la liste juste en dessous. Les dates sont des estimations.", {done:true});
+    if (draft.length) stage(3, `${draft.length} produit${draft.length>1?"s":""} trouvé${draft.length>1?"s":""}`, kind + (dups ? `${dups} déjà dans ton stock, décoché${dups>1?"s":""}. ` : "") + "Vérifie la liste juste en dessous. Les dates sont des estimations.", {done:true});
     else stage(2, "Aucun produit trouvé", "Essaie une photo plus nette, ticket bien à plat et en entier.", {err:true});
     renderReview();
   } catch (e) {
