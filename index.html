@@ -421,6 +421,50 @@ h1{font-family:var(--font-display);font-weight:800;font-size:2.3rem;letter-spaci
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--nav-h) + 100px + env(safe-area-inset-bottom,0px));background:var(--black);color:var(--black-ink);padding:8px 8px 8px 18px;border-radius:999px;font-weight:600;font-size:.95rem;z-index:30;width:max-content;max-width:calc(100% - 40px);display:flex;align-items:center;gap:12px}
 .toast:not(:has(.undo)){padding:11px 18px}
 .toast .undo{border:0;border-radius:999px;background:var(--black-ink);color:var(--black);font-weight:700;padding:8px 14px;min-height:36px;flex:none}
+/* scanner: what the photo shows */
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:4px;background:var(--grey-bg);border-radius:999px;padding:4px}
+.seg button{border:0;background:transparent;color:var(--soft);font:inherit;font-weight:700;font-size:.92rem;border-radius:999px;min-height:42px;padding:6px 10px}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 4px rgba(0,0,0,.1)}
+.tile.pink{background:var(--pink-bg);color:var(--pink-fg)} .tile.pink .ic{background:var(--pink-fg);color:#fff}
+.rv-dup{font-size:.84rem;font-weight:600;color:var(--soft)}
+/* courses: basket */
+.cart{padding-top:6px;border-top:1px dashed var(--ring)}
+.cart-done{align-self:stretch;margin-top:6px}
+/* scan review: compact lines */
+.rv{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.rv-row{border:1px solid var(--line);border-radius:16px;background:var(--surface);padding:8px 8px 8px 12px;display:flex;flex-direction:column;gap:10px}
+.rv-row.doubt{background:var(--yellow-bg);border-color:transparent}
+.rv-row.off .rv-sum{opacity:.45}
+.rv-row .fields{padding:0 4px 6px}
+.rv-line{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center}
+.rv-take{width:24px;height:24px;margin:0;accent-color:var(--green)}
+.rv-sum{border:0;background:transparent;color:inherit;font:inherit;text-align:left;padding:4px 0;display:flex;flex-direction:column;gap:2px;min-width:0;cursor:pointer}
+.rv-name{font-weight:600;overflow-wrap:anywhere}
+.rv-meta{font-size:.86rem;color:var(--soft)}
+.rv-why{font-size:.84rem;font-weight:700;color:var(--yellow-fg)}
+.rv-pen{border:0;background:var(--grey-bg);color:var(--ink);width:40px;height:40px;border-radius:50%;display:grid;place-items:center;padding:0}
+.rv-row.doubt .rv-pen{background:var(--hero-chip)}
+.rv-pen svg{width:16px;height:16px}
+.rv-hint{margin:0;font-size:.9rem;font-weight:600;color:var(--yellow-fg)}
+.rv-add{align-self:flex-start}
+/* onboarding: small app previews */
+.mk{width:min(250px,84%);display:flex;flex-direction:column;gap:6px;font-size:.8rem;line-height:1.3;color:var(--ink);text-align:left}
+.mk i{width:14px;height:14px;border-radius:50%;border:1.5px solid var(--ring);flex:none;display:grid;place-items:center;font-style:normal;font-size:.6rem;font-weight:800}
+.mk em{margin-left:auto;font-style:normal;font-weight:700;font-size:.74rem;color:var(--hero-accent)}
+.mk em.ok{color:var(--green-fg)} .mk em.warn{color:var(--yellow-fg)}
+.mk-hero{background:linear-gradient(125deg,var(--hero-a),var(--hero-c));border-radius:16px;padding:10px 12px;box-shadow:0 6px 18px rgba(0,0,0,.08)}
+.mk-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:2px}
+.mk-h span{background:var(--hero-chip);color:var(--hero-accent);border-radius:999px;padding:0 8px;font-weight:800}
+.mk-r,.mk-row{display:flex;align-items:center;gap:8px;border-radius:10px;padding:7px 9px}
+.mk-r{background:var(--hero-chip)} .mk-r i{border-color:var(--hero-accent)}
+.mk-row{background:var(--surface);box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.mk-list{position:relative;padding-bottom:30px}
+.mk-fab{position:absolute;right:-10px;bottom:-10px;width:36px;height:36px;border-radius:50%;background:var(--green);color:#0b2416;display:grid;place-items:center;font-size:1.3rem;font-weight:700;box-shadow:0 4px 12px rgba(52,210,123,.4)}
+.mk-done{flex-direction:row;align-items:center;justify-content:center;gap:10px}
+.mk-row.done span{text-decoration:line-through;color:var(--muted)}
+.mk-row.done i{background:var(--green);border-color:var(--green);color:#fff}
+.mk-arrow{font-size:1.2rem;color:var(--soft)}
+.mk-chip{background:var(--surface);border-radius:999px;padding:6px 12px;font-weight:700;box-shadow:0 2px 8px rgba(0,0,0,.06)}
 /* feedback page */
 .fb-q{display:flex;flex-direction:column;gap:10px}
 .fb-q .conf-l{color:var(--soft)}
@@ -478,7 +522,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     <h1>Courses</h1>
   </header>
   <div id="shop"></div>
-  <p class="status" style="font-size:.9rem">Coche un produit acheté : il revient dans le stock avec la même durée de conservation que la dernière fois. Glisse un produit vers la gauche pour le retirer si tu n'en rachètes pas.</p>
+  <p class="status" style="font-size:.9rem">Coche ce que tu mets dans ton panier. En rentrant, « J'ai rangé mes courses » remet tout dans le stock, avec la même durée de conservation que la dernière fois. Glisse un produit vers la gauche pour le retirer si tu n'en rachètes pas.</p>
 </main>
 
 <!-- RECETTES -->
@@ -500,7 +544,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
 <main class="wrap" id="view-scan" hidden>
   <header class="phead"><button class="theme-btn" type="button" aria-label="Changer de thème"></button>
     <p class="eyebrow">Ajouter</p>
-    <h1>Scanner un ticket</h1>
+    <h1 id="scan-h1">Scanner un ticket</h1>
   </header>
   <section class="scan-card" id="scan-card" hidden aria-live="polite">
     <div class="sc-top">
@@ -511,9 +555,10 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     <div class="actions"><button class="btn plain" id="scan-stop" type="button">Arrêter</button><button class="btn plain" id="scan-again" type="button" hidden>Essayer une autre photo</button></div>
   </section>
   <div id="pick" style="display:flex;flex-direction:column;gap:14px">
+    <div class="seg" id="scan-mode" role="group" aria-label="Que veux-tu photographier ?"><button type="button" data-mode="ticket" aria-pressed="true">Ticket de caisse</button><button type="button" data-mode="frigo" aria-pressed="false">Photo du frigo</button></div>
     <div class="tile green cam-only">
       <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg></span>
-      <span>Prendre une photo<small>Ticket bien à plat, toute la longueur</small></span>
+      <span>Prendre une photo<small id="cam-hint">Ticket bien à plat, toute la longueur</small></span>
       <input id="file-cam" class="tile-input" type="file" accept="image/*" capture="environment" aria-label="Prendre une photo du ticket">
     </div>
     <div class="tile blue" id="drop">
@@ -663,6 +708,11 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
 <div class="sheet fab-menu" id="fab-menu" hidden role="dialog" aria-label="Ajouter au stock">
   <h2>Ajouter au stock</h2>
   <div class="mini-tiles" id="fm-photo">
+    <div class="tile mini pink">
+      <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="5.5" y="2.5" width="13" height="19" rx="2.5"/><path d="M5.5 10h13M9 6v2M9 13v3"/></svg></span>
+      <span>Photographier mon frigo<small>Je repère ce qu'il y a déjà dedans</small></span>
+      <input id="fm-fridge" class="tile-input" type="file" accept="image/*" aria-label="Photo de l'intérieur du frigo ou du congélo">
+    </div>
     <div class="tile mini green cam-only">
       <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg></span>
       <span>Scanner un ticket<small>Prendre une photo</small></span>
@@ -978,15 +1028,20 @@ function render(){
     (personal ? `<p class="status" style="font-size:.85rem;width:100%">Ton frigo est enregistré sur cet appareil uniquement.</p>` : "");
 
   // shopping, grouped by storage place like the Stock
-  const shopRow = i => `<li class="swipe"><div class="row" data-row="${i.id}">
-        <button class="check" data-bought="${i.id}" aria-label="${esc(i.name)} acheté, remettre dans le stock">${CHECK}</button>
+  const shopRow = i => `<li class="swipe"><div class="row ${i.inCart?"done":""}" data-row="${i.id}">
+        <button class="check" data-bought="${i.id}" aria-label="${esc(i.name)} : ${i.inCart?"retirer du panier":"mettre dans le panier"}">${CHECK}</button>
         <div style="min-width:0"><div class="title">${esc(i.name)}</div>
           <div class="meta">${i.confort?`<span class="ctag">Confort</span>`:""}${(i.qtyFull||1)>1?`<span>×${i.qtyFull}</span>`:""}${i.example?"<span>exemple</span>":""}</div></div>
         </div>${trashBtn(i, "Retirer")}</li>`;
-  const shopSec = z => { const l = shop.filter(i=>(i.zone||"frigo")===z); return l.length ? `<section class="section"><div class="section-h"><span class="pill z-${z}"><span class="dot d-${z}"></span>${ZONES[z]}</span><span class="bubble">${l.length}</span></div>
+  const toBuy = shop.filter(i=>!i.inCart), cart = shop.filter(i=>i.inCart);
+  const shopSec = z => { const l = toBuy.filter(i=>(i.zone||"frigo")===z); return l.length ? `<section class="section"><div class="section-h"><span class="pill z-${z}"><span class="dot d-${z}"></span>${ZONES[z]}</span><span class="bubble">${l.length}</span></div>
        <ul class="rows">${l.map(shopRow).join("")}</ul></section>` : ""; };
   $("#shop").innerHTML = shop.length
-    ? `<div class="shop-secs"><div class="section-h" style="margin-bottom:-10px"><p class="eyebrow">Ma liste</p><span class="bubble">${shop.length}</span></div>${Object.keys(ZONES).map(shopSec).join("")}</div>`
+    ? `<div class="shop-secs">${toBuy.length ? `<div class="section-h" style="margin-bottom:-10px"><p class="eyebrow">À acheter</p><span class="bubble">${toBuy.length}</span></div>${Object.keys(ZONES).map(shopSec).join("")}` : `<p class="empty"><strong>Tout est dans le panier.</strong></p>`}
+       ${cart.length ? `<section class="section cart"><div class="section-h"><p class="eyebrow">Dans le panier</p><span class="bubble">${cart.length}</span></div>
+         <ul class="rows">${cart.map(shopRow).join("")}</ul>
+         <button class="btn green cart-done" id="cart-done" type="button">J'ai rangé mes courses</button>
+         <p class="conf-h">Remet ${cart.length>1?`ces ${cart.length} produits`:"ce produit"} dans le stock, avec de nouvelles dates.</p></section>` : ""}</div>`
     : `<p class="empty"><strong>Rien à racheter.</strong><br>Coche le rond d'un produit dans le stock quand tu l'as fini : il arrive ici.</p>`;
 
   showTab(tab);
@@ -1023,7 +1078,7 @@ function toast(msg, undo){
   const t = document.createElement("span"); t.textContent = msg; el.append(t);
   if (undo?.length) {
     const b = document.createElement("button"); b.type = "button"; b.className = "undo"; b.textContent = "Annuler";
-    b.onclick = async () => { el.hidden = true; clearTimeout(toastT); for (const it of undo) await put(it); };
+    b.onclick = async () => { el.hidden = true; clearTimeout(toastT); if (typeof undo==="function") await undo(); else for (const it of undo) await put(it); };
     el.append(b);
   }
   clearTimeout(toastT); toastT = setTimeout(()=>el.hidden=true, undo?.length ? 6000 : 3200);
@@ -1105,8 +1160,12 @@ document.addEventListener("click", async e => {
   if (b.dataset.drop) { const it=find(b.dataset.drop); await remove(it.id); toast(`${it.name} retiré des courses`, [it]); }
   if (b.dataset.trash) { const it=find(b.dataset.trash); if (!it) return; const shop = it.status==="shop";
     await remove(it.id); toast(shop ? `${it.name} retiré des courses` : `${it.name} supprimé`, [it]); return; }
-  if (b.dataset.bought) { const it=find(b.dataset.bought); tickThen(it.id, async () => { const back=await rebuy(it);
-    toast(back.expires ? `${it.name} → stock` : `${it.name} → stock, touche la date`, [it]); }); }
+  if (b.dataset.bought) { const it=find(b.dataset.bought); if (!it) return;
+    if (it.inCart) await put({...it, inCart:false});
+    else tickThen(it.id, () => put({...it, inCart:true})); }
+  if (b.id==="cart-done") { const cart = items.filter(i=>i.status==="shop" && i.inCart); if (!cart.length) return;
+    for (const it of cart) await rebuy(it);
+    toast(`${cart.length} produit${cart.length>1?"s":""} rangé${cart.length>1?"s":""} dans le stock`, cart); }
   if (b.id==="clear-ex") { const ex = items.filter(i=>i.example); for (const it of ex) await remove(it.id); toast(`${ex.length} exemples effacés`, ex); }
   if (b.id==="ics") exportIcs();
   if (b.id==="fab") { if (tab==="stock" && scanReady) { $("#fab-menu").hidden ? openMenu() : closeMenu(); } else openSheet(); }
@@ -1186,7 +1245,7 @@ async function addToStock(list){
   for (const p of list) {
     const match = items.find(i => i.status==="shop" && norm(i.name)===norm(p.name));
     const q = Math.max(1, parseInt(p.qty)||1);
-    if (match) { await put({...match, ...p, id:match.id, status:"stock", addedAt:todayISO(), qty:q, qtyFull:q}); restocked.push(p.name); }
+    if (match) { await put({...match, ...p, id:match.id, status:"stock", inCart:false, addedAt:todayISO(), qty:q, qtyFull:q}); restocked.push(p.name); }
     else await put({id:newId(), status:"stock", dateType:null, ...p, addedAt:todayISO(), qty:q, qtyFull:q});
   }
   return restocked;
@@ -1199,7 +1258,7 @@ async function rebuy(it){
     const shelf = Math.round((new Date(it.expires+"T00:00:00") - new Date(it.addedAt+"T00:00:00"))/86400000);
     if (shelf >= 0) expires = addDays(shelf);
   }
-  const back = {...it, status:"stock", expires, addedAt:todayISO(), qty: it.qtyFull || 1};
+  const back = {...it, status:"stock", inCart:false, expires, addedAt:todayISO(), qty: it.qtyFull || 1};
   await put(back);
   return back;
 }
@@ -1299,13 +1358,23 @@ for (const sel of ["#file", "#file-cam"])
     if (f) scan(f); else scanIdle("Aucune photo reçue. Réessaie.", true);
     e.target.value = "";
   });
-for (const sel of ["#fm-file", "#fm-cam"])
+for (const sel of ["#fm-file", "#fm-cam", "#fm-fridge"])
   $(sel).addEventListener("change", e => {
     const f = e.target.files?.[0]; e.target.value = "";
+    setScanMode(sel==="#fm-fridge" ? "frigo" : "ticket");
     closeMenu(); showTab("scan");
     if (f) scan(f); else scanIdle("Aucune photo reçue. Réessaie.", true);
   });
 $("#scan-stop").addEventListener("click", () => ctl?.abort());
+/* What the photo shows: a receipt, or the inside of the fridge / freezer */
+let scanMode = "ticket";
+function setScanMode(m){
+  scanMode = m;
+  document.querySelectorAll("#scan-mode button").forEach(b => b.setAttribute("aria-pressed", b.dataset.mode===m));
+  $("#scan-h1").textContent = m==="frigo" ? "Photographier le frigo" : "Scanner un ticket";
+  $("#cam-hint").textContent = m==="frigo" ? "Porte ouverte, bien éclairé, une étagère ou tout le frigo" : "Ticket bien à plat, toute la longueur";
+}
+$("#scan-mode").addEventListener("click", e => { const b = e.target.closest("[data-mode]"); if (b) setScanMode(b.dataset.mode); });
 $("#scan-again").addEventListener("click", () => scanIdle());
 
 /* Paste fallback: works where the app's webview won't open the camera or photo picker. */
@@ -1326,6 +1395,21 @@ document.addEventListener("paste", e => {
 });
 for (const t of ["#paste","#fm-paste"]) $(t).addEventListener("input", () => { $(t).value = ""; });
 
+const PROMPT_FRIGO = () => `Voici une photo de l'intérieur d'un frigo, d'un congélateur ou d'un placard, en France. Aujourd'hui nous sommes le ${todayISO()}.
+Liste les aliments et boissons que tu vois vraiment (pas les plats vides, ustensiles ni emballages vides).
+Pour chaque aliment :
+- "name" : nom clair et court en français (ex. "Yaourts nature", "Poivron rouge", "Reste de pâtes")
+- "qty" : nombre d'unités visibles (entier, 1 si tu ne sais pas)
+- "zone" : "congelo" si la photo montre un congélateur, "placard" si c'est un placard, sinon "frigo"
+- "confort" : true si l'aliment correspond à cette définition de la confort food : « ${confDef || CONF_DEFAULT} », sinon false
+- "days" : estimation prudente du nombre de jours qu'il reste avant de devoir le manger, d'après ce que tu vois (aspect, entamé ou non, type de produit), ou null si non pertinent
+- "dateType" : "DLC" pour les produits frais, "DDM" sinon
+- "doute" : true si tu n'es pas sûr de ce que c'est (emballage peu visible, flou, caché), sinon false
+- "raison" : si "doute" est true, quelques mots sur ce qu'il faut vérifier (ex. "Produit mal visible"), sinon ""
+Réponds uniquement avec un tableau JSON, par exemple :
+[{"name":"Poivron rouge","qty":2,"zone":"frigo","confort":false,"days":5,"dateType":"DLC","doute":false,"raison":""}]
+Si tu ne vois aucun aliment, réponds [].`;
+
 const PROMPT = () => `Voici la photo d'un ticket de caisse d'un supermarché français. Aujourd'hui nous sommes le ${todayISO()}.
 Extrais UNIQUEMENT les produits alimentaires et boissons (ignore sacs, hygiène, ménage, remises, totaux, TVA, moyens de paiement).
 Pour chaque produit :
@@ -1336,8 +1420,10 @@ Pour chaque produit :
 - "confort" : true si le produit correspond à cette définition de la confort food, donnée par l'utilisateur : « ${confDef || CONF_DEFAULT} », sinon false
 - "days" : nombre de jours typiques avant péremption à partir d'aujourd'hui pour un produit acheté aujourd'hui (estimation prudente), ou null si non pertinent (sel, épices...)
 - "dateType" : "DLC" pour les produits frais périssables (viande, poisson, laitages frais, plats préparés), "DDM" sinon
+- "doute" : true si tu n'es pas sûr de cette ligne (abréviation difficile à lire, produit incertain, quantité peu claire), sinon false. Une date estimée n'est pas un doute.
+- "raison" : si "doute" est true, quelques mots sur ce qu'il faut vérifier (ex. "Nom incertain", "Quantité à vérifier"), sinon ""
 Réponds uniquement avec un tableau JSON, par exemple :
-[{"raw":"YAOURT NAT X8","name":"Yaourts nature","qty":1,"zone":"frigo","confort":false,"days":20,"dateType":"DLC"}]
+[{"raw":"YAOURT NAT X8","name":"Yaourts nature","qty":8,"zone":"frigo","confort":false,"days":20,"dateType":"DLC","doute":false,"raison":""}]
 Si l'image n'est pas un ticket de caisse lisible, réponds [].`;
 
 /* Re-encode any photo the browser can decode (HEIC from iPhone included) as a JPEG of at most 2000px. */
@@ -1360,9 +1446,10 @@ async function scan(file){
   const jpg = await toJpeg(file);
   $("#preview").src = URL.createObjectURL(jpg);
   ctl = new AbortController();
-  stage(2, "Claude lit ton ticket", "Ça prend en général 20 à 60 secondes. Tu peux laisser la page ouverte.");
+  const fridge = scanMode==="frigo";
+  stage(2, fridge ? "Claude regarde ton frigo" : "Claude lit ton ticket", "Ça prend en général 20 à 60 secondes. Tu peux laisser la page ouverte.");
   try {
-    const out = await sample.json(PROMPT(), {images:[jpg], signal:ctl.signal});
+    const out = await sample.json(fridge ? PROMPT_FRIGO() : PROMPT(), {images:[jpg], signal:ctl.signal});
     const list = Array.isArray(out) ? out : [];
     draft = list.filter(p=>p && p.name).map((p,i)=>({
       key:i, take:true, raw:String(p.raw||""), name:String(p.name).trim(),
@@ -1370,9 +1457,12 @@ async function scan(file){
       confort: p.confort===true || p.zone==="confort",
       expires: Number.isFinite(+p.days) && p.days!==null ? addDays(Math.max(0, Math.round(+p.days))) : null,
       dateType: p.dateType==="DDM" ? "DDM" : p.dateType==="DLC" ? "DLC" : null,
-      qty: Math.max(1, parseInt(p.qty)||1)
-    }));
-    if (draft.length) stage(3, `${draft.length} produit${draft.length>1?"s":""} trouvé${draft.length>1?"s":""}`, "Vérifie la liste juste en dessous. Les dates sont des estimations.", {done:true});
+      qty: Math.max(1, parseInt(p.qty)||1),
+      unsure: p.doute===true, why: String(p.raison||"").trim(), open:false
+    })).map(d => { const dup = items.some(i => i.status!=="shop" && norm(i.name)===norm(d.name)); return dup ? {...d, dup:true, take:false} : d; })
+      .sort((a,b) => (b.unsure - a.unsure) || (a.dup ? 1 : 0) - (b.dup ? 1 : 0)); // to check first, already known last
+    const dups = draft.filter(d=>d.dup).length;
+    if (draft.length) stage(3, `${draft.length} produit${draft.length>1?"s":""} trouvé${draft.length>1?"s":""}`, (dups ? `${dups} déjà dans ton stock, décoché${dups>1?"s":""}. ` : "") + "Vérifie la liste juste en dessous. Les dates sont des estimations.", {done:true});
     else stage(2, "Aucun produit trouvé", "Essaie une photo plus nette, ticket bien à plat et en entier.", {err:true});
     renderReview();
   } catch (e) {
@@ -1390,31 +1480,65 @@ async function scan(file){
   }
 }
 
+/* one compact line per product (name + summary); tap it to edit. Doubtful lines are yellow and listed first. */
+function rvMeta(d){
+  return [ZONES[d.zone]||"Frigo", d.zone==="autre" ? "" : (d.expires ? fmtDate(d.expires) : "sans date"), d.qty>1 ? `×${d.qty}` : "", d.confort ? "Confort" : ""].filter(Boolean).join(" · ");
+}
+const RV_PEN = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m13.5 6.5 4 4"/></svg>`;
 function renderReview(){
   if (!draft.length) { $("#review").innerHTML=""; return; }
+  const doubt = draft.filter(d=>d.unsure).length;
   $("#review").innerHTML = `<section class="section review">
     <div class="section-h"><p class="eyebrow">À vérifier</p><span class="bubble">${draft.length}</span></div>
-    <ul class="rows">${draft.map(d=>`<li class="row ${d.take?"":"off"}">
-      <input type="checkbox" data-k="${d.key}" data-f="take" ${d.take?"checked":""} aria-label="Garder ${esc(d.name)}" style="width:26px;height:26px;accent-color:var(--green);margin-top:10px">
-      <div class="fields">
-        <input class="full name-in" type="text" data-k="${d.key}" data-f="name" value="${esc(d.name)}" aria-label="Nom">
+    ${doubt ? `<p class="rv-hint">${doubt} ligne${doubt>1?"s":""} en jaune à vérifier en priorité.</p>` : ""}
+    <ul class="rv">${draft.map(d=>`<li class="rv-row ${d.take?"":"off"} ${d.unsure?"doubt":""}" data-key="${d.key}">
+      <div class="rv-line">
+        <input type="checkbox" class="rv-take" data-k="${d.key}" data-f="take" ${d.take?"checked":""} aria-label="Garder ${esc(d.name)||"ce produit"}">
+        <button class="rv-sum" type="button" data-rvopen="${d.key}" aria-expanded="${!!d.open}">
+          <span class="rv-name">${esc(d.name)||"Nouveau produit"}</span>
+          <span class="rv-meta">${esc(rvMeta(d))}</span>
+          ${d.unsure && d.why ? `<span class="rv-why">${esc(d.why)}</span>` : ""}
+          ${d.dup ? `<span class="rv-dup">Déjà dans ton stock · coche pour l'ajouter quand même</span>` : ""}
+        </button>
+        <button class="rv-pen" type="button" data-rvopen="${d.key}" aria-label="Modifier ${esc(d.name)||"ce produit"}">${RV_PEN}</button>
+      </div>
+      <div class="fields" ${d.open?"":"hidden"}>
+        <input class="full name-in" type="text" data-k="${d.key}" data-f="name" value="${esc(d.name)}" aria-label="Nom" placeholder="Nom du produit">
         <select data-k="${d.key}" data-f="zone" aria-label="Rangement">${Object.entries(ZONES).map(([v,l])=>`<option value="${v}" ${d.zone===v?"selected":""}>${l}</option>`).join("")}</select>
         <input type="date" data-k="${d.key}" data-f="expires" value="${d.expires||""}" aria-label="Date de péremption">
         <label class="full chk"><input type="checkbox" data-k="${d.key}" data-f="confort" ${d.confort?"checked":""}> Confort food</label>
         <label class="full qty-in">Quantité <input type="number" min="1" max="99" inputmode="numeric" data-k="${d.key}" data-f="qty" value="${d.qty}" aria-label="Quantité de ${esc(d.name)}"></label>
-        <div class="full raw">${esc(d.raw)}${d.dateType?` · ${d.dateType==="DLC"?"date limite":"de préférence"}`:""}</div>
+        ${d.raw ? `<div class="full raw">Sur le ticket : ${esc(d.raw)}</div>` : ""}
       </div></li>`).join("")}</ul>
+    <button class="linkbtn rv-add" id="rv-add" type="button">+ Ajouter un produit oublié</button>
     <div class="actions" style="margin-top:8px"><button class="btn green" id="commit">Ajouter ${draft.filter(d=>d.take).length} produits au stock</button>
     <button class="btn plain" id="discard">Annuler</button></div></section>`;
   $("#commit").onclick = commit;
   $("#discard").onclick = () => scanIdle();
   dpEnhance($("#review"));
 }
+$("#review").addEventListener("click", e => {
+  const o = e.target.closest("[data-rvopen]");
+  if (o) {
+    const d = draft.find(x=>String(x.key)===o.dataset.rvopen); if (!d) return;
+    d.open = !d.open;
+    const li = o.closest(".rv-row"); li.querySelector(".fields").hidden = !d.open;
+    li.querySelector(".rv-sum").setAttribute("aria-expanded", d.open);
+    if (d.open) li.querySelector(".name-in").focus({preventScroll:true});
+    return;
+  }
+  if (e.target.closest("#rv-add")) {
+    draft.push({key:"m"+Date.now(), take:true, raw:"", name:"", zone:"frigo", confort:false, expires:null, dateType:null, qty:1, unsure:false, why:"", open:true});
+    renderReview(); const rows = document.querySelectorAll("#review .rv-row"); rows[rows.length-1].querySelector(".name-in").focus();
+  }
+});
 $("#review").addEventListener("input", e => {
   const k = e.target.dataset.k, f = e.target.dataset.f; if (k===undefined) return;
   const d = draft.find(x=>String(x.key)===k); if (!d) return;
   d[f] = e.target.type==="checkbox" ? e.target.checked : e.target.value;
-  if (f==="take") $("#commit").textContent = `Ajouter ${draft.filter(d=>d.take).length} produits au stock`;
+  const li = e.target.closest(".rv-row");
+  if (li) { li.querySelector(".rv-name").textContent = d.name || "Nouveau produit"; li.querySelector(".rv-meta").textContent = rvMeta(d); li.classList.toggle("off", !d.take); }
+  $("#commit").textContent = `Ajouter ${draft.filter(d=>d.take && d.name.trim()).length} produits au stock`;
 });
 async function commit(){
   const keep = draft.filter(d=>d.take && d.name.trim());
@@ -1585,17 +1709,20 @@ document.addEventListener("click", e => {
 
 /* ---------- onboarding (first visit) + "?" button to replay it ---------- */
 const OB = [
-  {art:"🧊", c:"green", t:"Ton frigo, sans l'ouvrir", x:"Garde un œil sur ce que tu as chez toi et sur ce qui va bientôt périmer, où que tu sois. L'onglet Plus, dans la barre du bas, regroupe le reste : aide, mode sombre…"},
-  {art:"🧾", c:"blue", t:"Ajoute tes produits", x:() => "Appuie sur le bouton + pour ajouter un produit à la main." + (hasAI() ? " Tu peux aussi scanner ton ticket de caisse depuis l'onglet Plus : produits, quantités et dates sont remplis pour toi." : " Bientôt, tu pourras aussi scanner ton ticket de caisse depuis l'onglet Plus.")},
-  {art:"⏰", c:"yellow", t:"Rien ne se perd", x:"Ce qui périme dans les 2 jours s'affiche en haut du Stock. Touche une date pour la corriger, et filtre par rangement : frigo, congélo, placard…"},
-  {art:"🛒", c:"grey", t:"Fini ? Coche-le", x:"Quand tu termines un produit, coche son rond : il part directement dans ta liste de Courses. Pour supprimer un produit, du stock comme des courses, glisse-le vers la gauche."},
-  {art:"🍳", c:"lilac", t:"Des idées de recettes", x:() => "Dans l'onglet Plus, « Idées de recettes » te propose des plats avec ce que tu as déjà, en commençant par ce qui périme en premier." + (hasAI() ? "" : " Cette fonction arrive bientôt.")},
-  {art:"🍕", c:"pink", t:"Ta confort food", x:"C'est une étiquette en plus du rangement : des lasagnes restent dans le Frigo, avec le badge Confort. Choisis ce que « confort food » veut dire pour toi dans Plus › Ma confort food. Tu retrouves ces produits sous le filtre Confort food."}
+  {c:"pink", t:"Ce qui presse, en un coup d'œil",
+   art:`<div class="mk mk-hero"><div class="mk-h"><b>À manger en premier</b><span>2</span></div><div class="mk-r"><i></i>Crème fraîche<em>aujourd'hui</em></div><div class="mk-r"><i></i>Tofu fumé<em>demain</em></div></div>`,
+   x:"Ton stock et ses dates, sans ouvrir le frigo. Ce qui périme dans les 2 jours s'affiche tout en haut du Stock."},
+  {c:"blue", t:"Ajoute tes produits",
+   art:`<div class="mk mk-list"><div class="mk-row"><i></i><span>Yaourts nature</span><em class="warn">dans 3 j</em></div><div class="mk-row"><i></i><span>Comté</span><em class="ok">dans 19 j</em></div><div class="mk-fab">+</div></div>`,
+   x:() => "Le bouton + ajoute un produit à la main" + (hasAI() ? ", ou lit ton ticket de caisse à ta place." : ". Bientôt, il pourra aussi lire ton ticket de caisse.") + " Touche une date pour la changer."},
+  {c:"green", t:"Fini ? Coche-le",
+   art:`<div class="mk mk-done"><div class="mk-row done"><i>✓</i><span>Lait</span></div><div class="mk-arrow" aria-hidden="true">→</div><div class="mk-chip">Courses</div></div>`,
+   x:"Le produit part dans tes Courses. Tout le reste (recettes, confort food, mode sombre, ton avis) se trouve dans l'onglet Plus."}
 ];
 let obI = 0, obLast = null;
 function obPaint(){
   const s = OB[obI], last = obI===OB.length-1;
-  $("#ob-art").className = "ob-art "+s.c; $("#ob-art").textContent = s.art;
+  $("#ob-art").className = "ob-art "+s.c; $("#ob-art").innerHTML = s.art;
   $("#ob-title").textContent = s.t; $("#ob-txt").textContent = typeof s.x==="function" ? s.x() : s.x;
   $("#ob-count").textContent = `${obI+1} / ${OB.length}`;
   $("#ob-dots").innerHTML = OB.map((_,i)=>`<span class="${i===obI?"on":""}"></span>`).join("");
