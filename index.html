@@ -685,12 +685,6 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
       </div>
     </div>
     <div class="fb-q">
-      <p class="conf-l" id="fb-top-l">Ça concerne quoi ?</p>
-      <div class="fb-opts" role="group" aria-labelledby="fb-top-l" data-g="topics" data-multi="1">
-        <button class="fb-opt" type="button" aria-pressed="false">Le stock</button><button class="fb-opt" type="button" aria-pressed="false">Les courses</button><button class="fb-opt" type="button" aria-pressed="false">Ajouter des produits</button><button class="fb-opt" type="button" aria-pressed="false">Le scan</button><button class="fb-opt" type="button" aria-pressed="false">Les recettes</button><button class="fb-opt" type="button" aria-pressed="false">Le design</button><button class="fb-opt" type="button" aria-pressed="false">Un bug</button><button class="fb-opt" type="button" aria-pressed="false">Une idée</button>
-      </div>
-    </div>
-    <div class="fb-q">
       <p class="conf-l" id="fb-facts-l">Ce qui t'est arrivé</p>
       <p class="conf-sub">Coche ce qui correspond à ton expérience, en bien comme en moins bien. Rien d'obligatoire.</p>
       <p class="fb-sub">Ajouter des produits</p>
@@ -1927,10 +1921,10 @@ let fbPrev = "stock";
 function openFeedback(){ if (tab!=="feedback") fbPrev = tab; window.scrollTo(0,0); showTab("feedback"); fbUpdate(); }
 function fbPicked(g){ return [...document.querySelectorAll(`#view-feedback [data-g="${g}"] [aria-pressed="true"]`)].map(b => b.textContent.trim()); }
 function fbText(){
-  const name = $("#fb-name").value.trim(), mood = fbPicked("mood"), topics = fbPicked("topics"), facts = fbPicked("facts"), msg = $("#fb-msg").value.trim();
+  const name = $("#fb-name").value.trim(), mood = fbPicked("mood"), facts = fbPicked("facts"), msg = $("#fb-msg").value.trim();
   return {
     subject: `Frigo sans ouvrir · avis${name ? " de " + name : ""}`,
-    body: [mood.length ? `L'app me sert : ${mood[0]}` : "", topics.length ? `Ça concerne : ${topics.join(", ")}` : "", facts.length ? "Ce qui m'est arrivé :\n" + facts.map(f => "- " + f).join("\n") : "", "", msg || "(pas de message)", "", name ? `— ${name}` : ""].filter((l,i,a) => l || (i>0 && a[i-1])).join("\n").trim()
+    body: [mood.length ? `L'app me sert : ${mood[0]}` : "", facts.length ? "Ce qui m'est arrivé :\n" + facts.map(f => "- " + f).join("\n") : "", "", msg || "(pas de message)", "", name ? `— ${name}` : ""].filter((l,i,a) => l || (i>0 && a[i-1])).join("\n").trim()
   };
 }
 function fbUpdate(){ const t = fbText(); $("#fb-send").href = `mailto:${FB_TO}?subject=${encodeURIComponent(t.subject)}&body=${encodeURIComponent(t.body)}`; }
