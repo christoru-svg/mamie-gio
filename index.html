@@ -476,17 +476,22 @@ h1{font-family:var(--font-display);font-weight:800;font-size:2.3rem;letter-spaci
 .rv-dup{font-size:.84rem;font-weight:600;color:var(--soft)}
 .sheet-or{margin:-4px 0 -6px;text-align:center;font-size:.82rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
 /* courses: basket */
-/* basket: always docked above the nav, next to the + button; folded unless opened */
-.cartbar{position:fixed;z-index:9;left:max(20px,calc(50% - 240px));right:calc(max(20px,calc(50% - 240px)) + 76px);bottom:calc(var(--nav-h) + 18px + env(safe-area-inset-bottom,0px));background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:24px;box-shadow:0 8px 24px rgba(0,0,0,.14);display:flex;flex-direction:column;max-height:60vh;overflow:hidden}
-.cartbar-h{display:flex;align-items:center;gap:6px;padding:8px 8px 8px 12px;min-height:64px;box-sizing:border-box;flex:none}
-.cartbar-t{flex:1;min-width:0;display:flex;align-items:center;gap:8px;border:0;background:none;font:inherit;font-weight:700;color:var(--ink);padding:6px 0;min-height:44px;text-align:left}
+/* basket: a folded bar docked right on top of the nav; tap it to unfold its content */
+.cartbar{position:fixed;z-index:9;left:0;right:0;bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px));background:var(--surface);color:var(--ink);border-top:1px solid var(--line);border-radius:20px 20px 0 0;box-shadow:0 -6px 20px rgba(0,0,0,.08)}
+.cartbar-in{max-width:520px;margin:0 auto;display:flex;flex-direction:column;max-height:60vh}
+.cartbar-t{flex:none;width:100%;display:flex;align-items:center;gap:10px;border:0;background:none;font:inherit;font-weight:800;font-size:.95rem;letter-spacing:.04em;text-transform:uppercase;color:var(--ink);padding:0 20px;min-height:56px;text-align:left}
 .cartbar-t>svg{width:22px;height:22px;flex:none}
-@media (max-width:420px){.cartbar-l{display:none}}
-.cartbar-t .chev{width:16px;height:16px;color:var(--soft);transition:transform .2s}
+.cartbar-t .chev{width:18px;height:18px;margin-left:auto;color:var(--soft);transition:transform .2s}
 .cartbar.open .cartbar-t .chev{transform:rotate(180deg)}
-.cartbar-h .btn{padding:10px 14px;min-height:44px;font-size:.88rem;white-space:nowrap;flex:none}
-.cartbar-body{overflow-y:auto;overscroll-behavior:contain;padding:12px 14px 10px;border-bottom:1px dashed var(--ring)}
-.cartbar-body .conf-h{margin:8px 0 0}
+.cartbar-body{order:-1;overflow-y:auto;overscroll-behavior:contain;padding:16px 20px 12px;border-bottom:1px dashed var(--ring);display:flex;flex-direction:column;gap:10px}
+.cartbar-body[hidden]{display:none}
+.cartbar-body .btn{align-self:stretch}
+.cartbar-body .conf-h{margin:0}
+/* with the bar showing, the + button, the messages and the end of the list move up by its height */
+body:has(#view-shop:not([hidden]) .cartbar) .fab{bottom:calc(var(--nav-h) + 56px + 18px + env(safe-area-inset-bottom,0px))}
+body:has(#view-shop:not([hidden]) .cartbar) .toast{bottom:calc(var(--nav-h) + 56px + 100px + env(safe-area-inset-bottom,0px))}
+body:has(#view-shop:not([hidden]) .cartbar.open) .fab{display:none}
+#view-shop:has(.cartbar){padding-bottom:calc(var(--nav-h) + 56px + 110px + env(safe-area-inset-bottom,0px))}
 .cartbar.pop .bubble{animation:cartpop .45s ease}
 @keyframes cartpop{40%{transform:scale(1.45)}}
 @media (prefers-reduced-motion:reduce){.cartbar.pop .bubble{animation:none}}
@@ -1153,11 +1158,12 @@ function render(){
        <ul class="rows">${l.map(shopRow).join("")}</ul></section>` : ""; };
   $("#shop").innerHTML = shop.length
     ? `<div class="shop-secs">${toBuy.length ? `<div class="section-h" style="margin-bottom:-10px"><p class="eyebrow">À acheter</p><span class="bubble">${toBuy.length}</span></div>${Object.keys(ZONES).map(shopSec).join("")}` : `<p class="empty"><strong>Tout est dans le panier.</strong></p>`}
-       ${cart.length ? `<section class="cartbar${cartOpen?" open":""}" aria-label="Panier">
+       ${cart.length ? `<section class="cartbar${cartOpen?" open":""}" aria-label="Panier"><div class="cartbar-in">
+         <button class="cartbar-t" id="cart-toggle" type="button" aria-expanded="${cartOpen}" aria-controls="cartbar-body">${CART_ICON}<span>Panier</span><span class="bubble">${cart.length}</span>${CHEVRON}</button>
          <div class="cartbar-body" id="cartbar-body"${cartOpen?"":" hidden"}><ul class="rows">${cart.map(shopRow).join("")}</ul>
-           <p class="conf-h">« J'ai tout rangé » remet ${cart.length>1?`ces ${cart.length} produits`:"ce produit"} dans le stock, avec de nouvelles dates.</p></div>
-         <div class="cartbar-h"><button class="cartbar-t" id="cart-toggle" type="button" aria-expanded="${cartOpen}" aria-controls="cartbar-body" aria-label="Panier : ${cart.length} produit${cart.length>1?"s":""}">${CART_ICON}<span class="cartbar-l">Panier</span><span class="bubble">${cart.length}</span>${CHEVRON}</button>
-           <button class="btn green" id="cart-done" type="button">J'ai tout rangé</button></div></section>` : ""}</div>`
+           <button class="btn green" id="cart-done" type="button">J'ai rangé mes courses</button>
+           <p class="conf-h">Remet ${cart.length>1?`ces ${cart.length} produits`:"ce produit"} dans le stock, avec de nouvelles dates.</p></div>
+       </div></section>` : ""}</div>`
     : `<p class="empty"><strong>Rien à racheter.</strong><br>Coche le rond d'un produit dans le stock quand tu l'as fini : il arrive ici.</p>`;
 
   showTab(tab);
