@@ -2082,6 +2082,8 @@ let obSeen = false; try { obSeen = localStorage.getItem("frigo.onboarded")==="1"
 if (!obSeen) obOpen();
 
 /* ---------- feedback: a prefilled e-mail, with "copy" as a fallback when mail links don't open ---------- */
+/* Feedback lands as a card on the "Retours Mamie Gio" Trello board (its email-to-board address), with a copy to me. */
+const FB_TRELLO = "christopherdepaola+dkuiuqppcusmyvoytnqx@boards.trello.com";
 const FB_TO = "chris.depaola.toru@gmail.com";
 let fbPrev = "stock";
 function openFeedback(){ track("avis-ouvert"); if (tab!=="feedback") fbPrev = tab; window.scrollTo(0,0); showTab("feedback"); fbUpdate(); }
@@ -2093,7 +2095,7 @@ function fbText(){
     body: [mood.length ? `L'app me sert : ${mood[0]}` : "", facts.length ? "Ce qui m'est arrivé :\n" + facts.map(f => "- " + f).join("\n") : "", "", msg || "(pas de message)", idea ? `\nIdée de nom : ${idea}` : "", "", name ? `— ${name}` : ""].filter((l,i,a) => l || (i>0 && a[i-1])).join("\n").trim()
   };
 }
-function fbUpdate(){ const t = fbText(); $("#fb-send").href = `mailto:${FB_TO}?subject=${encodeURIComponent(t.subject)}&body=${encodeURIComponent(t.body)}`; }
+function fbUpdate(){ const t = fbText(); $("#fb-send").href = `mailto:${FB_TRELLO}?cc=${FB_TO}&subject=${encodeURIComponent(t.subject)}&body=${encodeURIComponent(t.body)}`; }
 $("#view-feedback").addEventListener("click", async e => {
   const o = e.target.closest(".fb-opt");
   if (o) {
