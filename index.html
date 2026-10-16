@@ -300,6 +300,14 @@ h1{font-family:var(--font-display);font-weight:800;font-size:2.3rem;letter-spaci
 .conf-block{display:flex;flex-direction:column;gap:8px}
 .conf-block p{margin:0}
 .conf-page textarea{width:100%;box-sizing:border-box;font:inherit;font-size:16px;border:1.5px solid var(--ring);border-radius:14px;padding:12px 14px;background:var(--surface);color:var(--ink);resize:vertical}
+.sup-card{background:linear-gradient(135deg,var(--yellow-bg),var(--surface));border:1px solid var(--line);border-radius:24px;padding:22px;display:flex;flex-direction:column;gap:12px}
+.sup-card p{margin:0;line-height:1.5}
+.sup-art{font-size:48px;line-height:1}
+.sup-l{font-weight:700}
+.sup-list{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px;line-height:1.45}
+.sup-card .btn{align-self:stretch;margin-top:6px}
+.sup-h{font-size:.88rem;color:var(--soft)}
+.fb-sup{border:0;background:none;padding:4px 0;font:inherit;font-size:.92rem;font-weight:700;color:var(--ink);text-decoration:underline;text-underline-offset:3px;align-self:flex-start}
 .backlink{display:inline-flex;align-items:center;gap:4px;border:0;background:var(--grey-bg);color:var(--ink);font:inherit;font-weight:600;font-size:.92rem;padding:8px 14px 8px 8px;min-height:40px;border-radius:999px;margin-bottom:14px}
 .conf-presets{display:flex;flex-wrap:wrap;gap:6px}
 .conf-p{border:1.5px solid var(--pink-fg);background:var(--surface);color:var(--pink-fg);border-radius:999px;padding:7px 12px;font:inherit;font-size:.86rem;font-weight:600;min-height:36px;text-align:left}
@@ -720,6 +728,28 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     </div>
     <div class="conf-act"><a class="btn green" id="fb-send" href="mailto:chris.depaola.toru@gmail.com">Envoyer par e-mail</a><button class="btn plain" id="fb-copy" type="button">Copier le message</button></div>
     <p class="conf-h">« Envoyer par e-mail » ouvre ton app mail avec le message prêt : il reste à appuyer sur Envoyer. Si rien ne s'ouvre, copie le message et envoie-le à <span class="fb-to">chris.depaola.toru@gmail.com</span>.</p>
+    <button class="fb-sup" type="button" id="fb-sup">Soutenir le projet ☕</button>
+  </section>
+</main>
+
+<!-- SUPPORT: link to the creator's Ko-fi page -->
+<main class="wrap" id="view-support" hidden>
+  <header class="phead"><button class="theme-btn" type="button" aria-label="Changer de thème"></button>
+    <button class="backlink" type="button" id="sup-back"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 6-6 6 6 6"/></svg>Retour</button>
+    <p class="eyebrow">Merci d'être là</p>
+    <h1>Soutenir le projet</h1>
+  </header>
+  <section class="sup-card">
+    <div class="sup-art" aria-hidden="true">☕</div>
+    <p>Frigo sans ouvrir est gratuite et sans pub. Je l'ai créée pour gaspiller moins, dépenser moins et avoir une chose de moins à retenir.</p>
+    <p class="sup-l">Tes dons servent à payer :</p>
+    <ul class="sup-list">
+      <li>le serveur qui relie l'app à l'IA (Claude) ;</li>
+      <li>la lecture des tickets et des photos du frigo, payante à chaque scan ;</li>
+      <li>bientôt, les idées de recettes avec ce que tu as déjà.</li>
+    </ul>
+    <a class="btn green" id="sup-go" href="https://ko-fi.com/christorusvg" target="_blank" rel="noopener">Offrir un café sur Ko-fi</a>
+    <p class="sup-h">Tu arriveras sur ma page personnelle Ko-fi. Tester l'app et donner ton avis m'aide déjà beaucoup : le don est vraiment facultatif.</p>
   </section>
 </main>
 
@@ -743,6 +773,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
   <div class="ksep" role="separator"></div>
   <button role="menuitem" type="button" data-k="confort"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg><span class="klabel">Ma confort food</span></button>
   <button role="menuitem" type="button" data-k="feedback"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5.5h16v11H9l-5 4z"/><path d="M8.5 9.5h7M8.5 12.5h4.5"/></svg><span class="klabel">Donner mon avis</span></button>
+  <button role="menuitem" type="button" data-k="support"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 9h12v5.5a5 5 0 0 1-5 5h-2a5 5 0 0 1-5-5z"/><path d="M16.5 11h1.5a2.5 2.5 0 0 1 0 5h-1.5"/><path d="M8.5 3.5c0 1.5 1.5 1.5 1.5 3M12.5 3.5c0 1.5 1.5 1.5 1.5 3"/></svg><span class="klabel">Soutenir le projet</span></button>
   <button role="menuitem" type="button" data-k="help"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6v.6M12 17.2v.1"/></svg><span class="klabel">Aide</span></button>
   <button role="menuitemcheckbox" type="button" data-k="theme" id="k-theme" aria-checked="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg><span class="klabel">Mode sombre</span><span class="kswitch" aria-hidden="true"></span></button>
 </div>
@@ -1135,8 +1166,9 @@ function showTab(t){
   if (t==="confort" && $("#view-confort").hidden) fillConfPage();
   $("#view-confort").hidden = t!=="confort";
   $("#view-feedback").hidden = t!=="feedback";
-  $("#fab").hidden = t==="scan" || t==="recipes" || t==="confort" || t==="feedback";
-  $("#nav-more").classList.toggle("on", t==="scan" || t==="recipes" || t==="confort" || t==="feedback");
+  $("#view-support").hidden = t!=="support";
+  $("#fab").hidden = t==="scan" || t==="recipes" || t==="confort" || t==="feedback" || t==="support";
+  $("#nav-more").classList.toggle("on", t==="scan" || t==="recipes" || t==="confort" || t==="feedback" || t==="support");
   if (t==="recipes" && !soon) recipesMaybe();
 }
 /* Scan and recipes need Claude: outside claude.ai they show a "coming soon" screen. */
@@ -1878,6 +1910,7 @@ $("#kmenu").addEventListener("click", e => {
   if (k==="help") obOpen();
   else if (k==="confort") openConfPage();
   else if (k==="feedback") openFeedback();
+  else if (k==="support") openSupport();
   else { window.scrollTo(0,0); showTab(k); }
 });
 $("#kmenu").addEventListener("keydown", e => {
@@ -1913,6 +1946,7 @@ $("#view-feedback").addEventListener("click", async e => {
     if (!grp.dataset.multi) grp.querySelectorAll(".fb-opt").forEach(b => b.setAttribute("aria-pressed","false"));
     o.setAttribute("aria-pressed", on); fbUpdate(); return;
   }
+  if (e.target.closest("#fb-sup")) return openSupport();
   if (e.target.closest("#fb-back")) { window.scrollTo(0,0); showTab(fbPrev && fbPrev!=="feedback" ? fbPrev : "stock"); return; }
   if (e.target.closest("#fb-send")) { fbUpdate(); toast("Ton app mail s'ouvre avec le message"); return; }
   if (e.target.closest("#fb-copy")) {
@@ -1922,6 +1956,11 @@ $("#view-feedback").addEventListener("click", async e => {
   }
 });
 $("#view-feedback").addEventListener("input", fbUpdate);
+
+/* ---------- support page: link to the Ko-fi page ---------- */
+let supPrev = "stock";
+function openSupport(){ if (tab!=="support") supPrev = tab; window.scrollTo(0,0); showTab("support"); }
+$("#sup-back").addEventListener("click", () => { window.scrollTo(0,0); showTab(supPrev && supPrev!=="support" ? supPrev : "stock"); });
 
 /* ---------- custom date picker: the phone's native one doesn't open inside the app ---------- */
 const DP_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>`;
