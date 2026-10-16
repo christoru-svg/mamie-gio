@@ -787,10 +787,6 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
       <textarea id="fb-msg" rows="5" placeholder="Un exemple, un produit mal reconnu, une idée… Tout détail aide."></textarea>
     </div>
     <div class="fb-q">
-      <label class="conf-l" for="fb-idea">Une idée de nom pour l'app ? (facultatif)</label>
-      <input class="fb-name" id="fb-idea" type="text" autocomplete="off" placeholder="Si un nom te vient en tête">
-    </div>
-    <div class="fb-q">
       <label class="conf-l" for="fb-name">Ton prénom (facultatif)</label>
       <input class="fb-name" id="fb-name" type="text" autocomplete="given-name">
     </div>
@@ -2089,10 +2085,10 @@ let fbPrev = "stock";
 function openFeedback(){ track("avis-ouvert"); if (tab!=="feedback") fbPrev = tab; window.scrollTo(0,0); showTab("feedback"); fbUpdate(); }
 function fbPicked(g){ return [...document.querySelectorAll(`#view-feedback [data-g="${g}"] [aria-pressed="true"]`)].map(b => b.textContent.trim()); }
 function fbText(){
-  const name = $("#fb-name").value.trim(), mood = fbPicked("mood"), facts = fbPicked("facts"), msg = $("#fb-msg").value.trim(), idea = $("#fb-idea").value.trim();
+  const name = $("#fb-name").value.trim(), mood = fbPicked("mood"), facts = fbPicked("facts"), msg = $("#fb-msg").value.trim();
   return {
     subject: `Mamie Gio · avis${name ? " de " + name : ""}`,
-    body: [mood.length ? `L'app me sert : ${mood[0]}` : "", facts.length ? "Ce qui m'est arrivé :\n" + facts.map(f => "- " + f).join("\n") : "", "", msg || "(pas de message)", idea ? `\nIdée de nom : ${idea}` : "", "", name ? `— ${name}` : ""].filter((l,i,a) => l || (i>0 && a[i-1])).join("\n").trim()
+    body: [mood.length ? `L'app me sert : ${mood[0]}` : "", facts.length ? "Ce qui m'est arrivé :\n" + facts.map(f => "- " + f).join("\n") : "", "", msg || "(pas de message)", "", name ? `— ${name}` : ""].filter((l,i,a) => l || (i>0 && a[i-1])).join("\n").trim()
   };
 }
 function fbUpdate(){ const t = fbText(); $("#fb-send").href = `mailto:${FB_TRELLO}?cc=${FB_TO}&subject=${encodeURIComponent(t.subject)}&body=${encodeURIComponent(t.body)}`; }
