@@ -1177,6 +1177,8 @@ function paintSoon(t){
 }
 
 let toastT;
+/* Mamie Gio's sayings (Giovanna's own words): "we throw nothing away", "to save money". Shown now and then, not every time. */
+const gio = (said, p=1) => Math.random() < p ? said + " " : "";
 /* undo: list of item snapshots to write back (a deleted item is recreated from its snapshot) */
 function toast(msg, undo){
   const el = $("#toast"); el.innerHTML = ""; el.hidden = false;
@@ -1259,7 +1261,7 @@ document.addEventListener("click", async e => {
   if (b.dataset.filter) { if (searchOpen) { searchOpen = false; q = ""; $("#q").value = ""; } zoneFilter = b.dataset.filter; try { localStorage.setItem("frigo.zone", zoneFilter); } catch {}
     render(); const f=$("#filters"); if (f.getBoundingClientRect().top <= 1) window.scrollTo(0, f.offsetTop - 10 + 1); return; }
   if (b.dataset.used) { const it=find(b.dataset.used); const next=usedOne(it);
-    if (next.status==="shop") tickThen(it.id, async () => { await put(next); toast(`${it.name} → courses`, [it]); });
+    if (next.status==="shop") tickThen(it.id, async () => { await put(next); toast(`${gio("Un si butta via nulla !", .4)}${it.name} → courses`, [it]); });
     else { await put(next); toast(`${it.name} : ${next.qty} restant${next.qty>1?"s":""}`, [it]); } }
   if (b.dataset.goto) return goTo(b.dataset.goto);
   if (b.dataset.drop) { const it=find(b.dataset.drop); await remove(it.id); toast(`${it.name} retiré des courses`, [it]); }
@@ -1270,7 +1272,7 @@ document.addEventListener("click", async e => {
     else tickThen(it.id, () => put({...it, inCart:true})); }
   if (b.id==="cart-done") { const cart = items.filter(i=>i.status==="shop" && i.inCart); if (!cart.length) return;
     for (const it of cart) await rebuy(it);
-    toast(`${cart.length} produit${cart.length>1?"s":""} rangé${cart.length>1?"s":""} dans le stock`, cart); }
+    toast(`${gio("Per risparmià !")}${cart.length} produit${cart.length>1?"s":""} rangé${cart.length>1?"s":""} dans le stock`, cart); }
   if (b.id==="clear-ex") { const ex = items.filter(i=>i.example); for (const it of ex) await remove(it.id); toast(`${ex.length} exemples effacés`, ex); }
   if (b.id==="ics") exportIcs();
   if (b.id==="fab") { if (tab==="stock" && scanReady) { $("#fab-menu").hidden ? openMenu() : closeMenu(); } else openSheet(); }
