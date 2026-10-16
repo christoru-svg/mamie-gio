@@ -311,6 +311,20 @@ h1{font-family:var(--font-display);font-weight:800;font-size:2.3rem;letter-spaci
 .conf-block{display:flex;flex-direction:column;gap:8px}
 .conf-block p{margin:0}
 .conf-page textarea{width:100%;box-sizing:border-box;font:inherit;font-size:16px;border:1.5px solid var(--ring);border-radius:14px;padding:12px 14px;background:var(--surface);color:var(--ink);resize:vertical}
+/* my data page + install tip */
+.data-card{background:var(--surface);border:1px solid var(--line);border-radius:24px;padding:20px;display:flex;flex-direction:column;gap:12px}
+.data-card p{margin:0;line-height:1.5}
+.data-h{margin:0;font-size:1.15rem;font-weight:800}
+.data-small{font-size:.88rem;color:var(--soft)}
+.bk-load{position:relative;display:inline-flex;align-items:center;justify-content:center;text-align:center;cursor:pointer;overflow:hidden}
+.bk-load input{position:absolute;inset:0;opacity:0;cursor:pointer;font-size:0}
+.data-card .btn{align-self:stretch}
+.priv-list{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:10px;line-height:1.45}
+.install-tip{background:var(--blue-bg);color:var(--blue-fg);border-radius:20px;padding:14px 16px;display:flex;flex-direction:column;gap:8px}
+.install-tip p{margin:0;line-height:1.4}
+.install-tip .it-how{color:var(--ink);font-size:.92rem}
+.it-act{display:flex;gap:16px}
+.install-tip .linkbtn{color:var(--blue-fg);padding:4px 0;min-height:36px}
 .sup-card{background:linear-gradient(135deg,var(--yellow-bg),var(--surface));border:1px solid var(--line);border-radius:24px;padding:22px;display:flex;flex-direction:column;gap:12px}
 .sup-card p{margin:0;line-height:1.5}
 .sup-art{font-size:48px;line-height:1}
@@ -610,6 +624,11 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     <h1 id="today"></h1>
   </header>
   <div class="search" id="search" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg><input id="q" type="search" placeholder="Rechercher dans tout le stock" autocomplete="off" enterkeyhint="search" aria-label="Rechercher dans tout le stock"><button id="q-clear" type="button" aria-label="Fermer la recherche">✕</button></div>
+  <div class="install-tip" id="install-tip" hidden>
+    <p><b>Installe Mamie Gio sur ton écran d'accueil</b> pour ne pas perdre ton stock.</p>
+    <p class="it-how" id="it-how" hidden></p>
+    <div class="it-act"><button class="linkbtn" id="it-show" type="button">Comment ?</button><button class="linkbtn" id="it-close" type="button">Plus tard</button></div>
+  </div>
   <div class="hero" id="hero"></div>
   <div class="filters" id="filters" role="toolbar" aria-label="Filtrer par rangement"></div>
   <div class="conf-card" id="conf-card" hidden></div>
@@ -777,7 +796,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     </div>
     <div class="conf-act"><a class="btn green" id="fb-send" href="mailto:chris.depaola.toru@gmail.com">Envoyer par e-mail</a><button class="btn plain" id="fb-copy" type="button">Copier le message</button></div>
     <p class="conf-h">« Envoyer par e-mail » ouvre ton app mail avec le message prêt : il reste à appuyer sur Envoyer. Si rien ne s'ouvre, copie le message et envoie-le à <span class="fb-to">chris.depaola.toru@gmail.com</span>.</p>
-    <p class="conf-h">L'app compte les visites et les clics de façon anonyme, sans cookies, pour savoir ce qui sert. Elle ne compte jamais ce que contient ton stock.</p>
+    <p class="conf-h">L'app compte les visites et les clics de façon anonyme, sans cookies, pour savoir ce qui sert. Elle ne compte jamais ce que contient ton stock. Détails dans Plus → Mes données.</p>
     <button class="fb-sup" type="button" id="fb-sup">Soutenir le projet ☕</button>
   </section>
 </main>
@@ -795,6 +814,34 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     <p class="sup-l">Tes dons paient l’API pour le scan et les futures recettes ☕</p>
     <a class="btn green" id="sup-go" href="https://ko-fi.com/christorusvg" target="_blank" rel="noopener">Offrir un café sur Ko-fi</a>
     <p class="sup-h">Tu arriveras sur ma page personnelle Ko-fi. Tester l'app et donner ton avis m'aide déjà beaucoup : le don est vraiment facultatif.</p>
+  </section>
+</main>
+
+<!-- MY DATA: backup / restore + where data goes -->
+<main class="wrap" id="view-data" hidden>
+  <header class="phead"><button class="theme-btn" type="button" aria-label="Changer de thème"></button>
+    <button class="backlink" type="button" id="data-back"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 6-6 6 6 6"/></svg>Retour</button>
+    <p class="eyebrow">Confidentialité</p>
+    <h1>Mes données</h1>
+  </header>
+  <section class="data-card">
+    <h2 class="data-h">Sauvegarder mon stock</h2>
+    <p>Ton stock est enregistré seulement sur ce téléphone. Fais une sauvegarde de temps en temps : si l'app est effacée, tu pourras tout récupérer.</p>
+    <button class="btn green" id="bk-save" type="button">Sauvegarder mon stock</button>
+    <label class="btn plain bk-load">Restaurer une sauvegarde<input id="bk-file" type="file" accept=".json,application/json"></label>
+    <p class="data-small">La sauvegarde est un petit fichier que tu ranges où tu veux (Fichiers, Drive…). La restauration ajoute les produits sauvegardés à ton stock actuel, sans rien effacer.</p>
+  </section>
+  <section class="data-card">
+    <h2 class="data-h">Où vont tes données</h2>
+    <ul class="priv-list">
+      <li><b>Ton stock</b> reste sur ton téléphone. Il n'est envoyé nulle part.</li>
+      <li><b>Les photos que tu scannes</b> (ticket, frigo) sont envoyées à Claude, l'IA d'Anthropic (États-Unis), via un petit serveur Cloudflare, le temps de les lire. L'app ne les garde pas ; Anthropic les traite selon ses conditions d'utilisation.</li>
+      <li><b>La dictée</b> utilise la reconnaissance vocale de ton téléphone (Google sur Android, Apple sur iPhone). L'app ne reçoit que le texte.</li>
+      <li><b>Les statistiques</b> comptent les visites et les clics de façon anonyme avec Umami, sans cookies. Jamais le contenu de ton stock.</li>
+      <li><b>Ton avis</b> part depuis ta propre messagerie, vers moi seulement.</li>
+      <li><b>L'hébergement</b> est fait par GitHub Pages, qui peut garder des journaux techniques (comme l'adresse IP).</li>
+    </ul>
+    <p class="data-small">Pour tout effacer, supprime l'app de ton téléphone (ou les données du site dans ton navigateur). Une question : <span class="fb-to">chris.depaola.toru@gmail.com</span></p>
   </section>
 </main>
 
@@ -819,6 +866,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
   <button role="menuitem" type="button" data-k="confort"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg><span class="klabel">Ma comfort food</span></button>
   <button role="menuitem" type="button" data-k="feedback"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5.5h16v11H9l-5 4z"/><path d="M8.5 9.5h7M8.5 12.5h4.5"/></svg><span class="klabel">Donner mon avis</span></button>
   <button role="menuitem" type="button" data-k="support"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 9h12v5.5a5 5 0 0 1-5 5h-2a5 5 0 0 1-5-5z"/><path d="M16.5 11h1.5a2.5 2.5 0 0 1 0 5h-1.5"/><path d="M8.5 3.5c0 1.5 1.5 1.5 1.5 3M12.5 3.5c0 1.5 1.5 1.5 1.5 3"/></svg><span class="klabel">Soutenir le projet</span></button>
+  <button role="menuitem" type="button" data-k="data"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5 5 6v5.5c0 4.3 3 7.6 7 9 4-1.4 7-4.7 7-9V6z"/><path d="m9 12 2.2 2.2L15.5 10"/></svg><span class="klabel">Mes données</span></button>
   <button role="menuitem" type="button" data-k="help"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6v.6M12 17.2v.1"/></svg><span class="klabel">Aide</span></button>
   <button role="menuitemcheckbox" type="button" data-k="theme" id="k-theme" aria-checked="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg><span class="klabel">Mode sombre</span><span class="kswitch" aria-hidden="true"></span></button>
 </div>
@@ -1217,8 +1265,9 @@ function showTab(t){
   $("#view-confort").hidden = t!=="confort";
   $("#view-feedback").hidden = t!=="feedback";
   $("#view-support").hidden = t!=="support";
-  $("#fab").hidden = t==="scan" || t==="recipes" || t==="confort" || t==="feedback" || t==="support";
-  $("#nav-more").classList.toggle("on", t==="scan" || t==="recipes" || t==="confort" || t==="feedback" || t==="support");
+  $("#view-data").hidden = t!=="data";
+  $("#fab").hidden = t==="scan" || t==="recipes" || t==="confort" || t==="feedback" || t==="support" || t==="data";
+  $("#nav-more").classList.toggle("on", t==="scan" || t==="recipes" || t==="confort" || t==="feedback" || t==="support" || t==="data");
   if (t==="recipes" && !soon) recipesMaybe();
 }
 /* Scan and recipes need Claude: outside claude.ai they show a "coming soon" screen. */
@@ -1260,6 +1309,8 @@ function micStop(){ try { rec?.abort(); } catch {} rec = null; $("#add-mic").set
     const inp = $("#add-name"), before = inp.value;
     $("#add-mic").setAttribute("aria-pressed", "true"); inp.placeholder = "Je t'écoute… ex. « deux yaourts au frigo »"; inp.value = "";
     track("vocal-debut");
+    let noted = false; try { noted = localStorage.getItem("frigo.micNote")==="1"; localStorage.setItem("frigo.micNote","1"); } catch {}
+    if (!noted) toast("La dictée passe par la reconnaissance vocale de ton téléphone (Google ou Apple). L'app ne reçoit que le texte.", null, 5000);
     rec.onresult = e => {
       const r = e.results[e.results.length-1], said = r[0].transcript;
       if (!r.isFinal) { inp.value = said; return; }
@@ -2014,6 +2065,7 @@ $("#kmenu").addEventListener("click", e => {
   else if (k==="confort") openConfPage();
   else if (k==="feedback") openFeedback();
   else if (k==="support") openSupport();
+  else if (k==="data") openData();
   else { window.scrollTo(0,0); showTab(k); }
 });
 $("#kmenu").addEventListener("keydown", e => {
@@ -2065,6 +2117,55 @@ let supPrev = "stock";
 function openSupport(){ track("soutien-ouvert"); if (tab!=="support") supPrev = tab; window.scrollTo(0,0); showTab("support"); }
 $("#sup-go").addEventListener("click", () => track("kofi-clic"));
 $("#sup-back").addEventListener("click", () => { window.scrollTo(0,0); showTab(supPrev && supPrev!=="support" ? supPrev : "stock"); });
+
+
+/* ---------- my data: backup / restore, and the install tip ---------- */
+let dataPrev = "stock";
+function openData(){ track("donnees-ouvert"); if (tab!=="data") dataPrev = tab; window.scrollTo(0,0); showTab("data"); }
+$("#data-back").addEventListener("click", () => { window.scrollTo(0,0); showTab(dataPrev && dataPrev!=="data" ? dataPrev : "stock"); });
+$("#bk-save").addEventListener("click", async () => {
+  const json = JSON.stringify({ app:"Mamie Gio", version:1, date:new Date().toISOString(), confort:confDef, items }, null, 1);
+  const filename = `mamie-gio-stock-${todayISO()}.json`;
+  track("sauvegarde", { produits: items.length });
+  const dl = await window.claude?.use?.("downloads");
+  if (dl) { try { await dl.save({filename, data:json}); toast("Sauvegarde enregistrée"); } catch(err){ if (err?.code!=="cancelled") toast("Sauvegarde non enregistrée"); } return; }
+  const file = new File([json], filename, {type:"application/json"});
+  if (navigator.canShare?.({files:[file]})) { // phones: share sheet → "Enregistrer dans Fichiers", Drive…
+    try { await navigator.share({files:[file], title:"Sauvegarde Mamie Gio"}); return toast("Sauvegarde prête"); } catch(err){ if (err?.name==="AbortError") return; }
+  }
+  const a = document.createElement("a"); a.href = URL.createObjectURL(file); a.download = filename;
+  document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  toast("Sauvegarde téléchargée");
+});
+$("#bk-file").addEventListener("change", async e => {
+  const f = e.target.files?.[0]; e.target.value = ""; if (!f) return;
+  let back;
+  try { const d = JSON.parse(await f.text()); back = (Array.isArray(d) ? d : d.items || []).filter(i => i && typeof i.name==="string" && i.name.trim()); if (!Array.isArray(d) && d.confort && !confDef) { confDef = String(d.confort); try { localStorage.setItem("frigo.confort", confDef); } catch {} } }
+  catch { return toast("Ce fichier n'est pas une sauvegarde Mamie Gio"); }
+  if (!back.length) return toast("Cette sauvegarde est vide");
+  if (!confirm(`Ajouter les ${back.length} produit${back.length>1?"s":""} de cette sauvegarde à ton stock ? Rien ne sera effacé.`)) return;
+  const restored = back.map(i => ({...i, id: typeof i.id==="string" && i.id ? i.id : newId()}));
+  if (store) { for (const it of restored) await put(it); }
+  else { const byId = new Map(items.map(i => [i.id, i])); for (const it of restored) byId.set(it.id, it); items = [...byId.values()]; saveLocal(); }
+  track("restauration", { produits: restored.length });
+  toast(`${restored.length} produit${restored.length>1?"s":""} restauré${restored.length>1?"s":""}`);
+});
+
+/* Installed app = storage that lasts. In a plain browser tab (or private browsing) the stock can vanish, so say it once in a while. */
+{
+  const standalone = matchMedia("(display-mode: standalone)").matches || navigator.standalone;
+  if (standalone) navigator.storage?.persist?.().catch(() => {});
+  let later = 0; try { later = +localStorage.getItem("frigo.installLater") || 0; } catch {}
+  const mobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  if ("FRIGO_API" in window && !standalone && mobile && Date.now() > later) {
+    const ios = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+    $("#it-how").textContent = (ios ? "Dans Safari : bouton Partager → « Sur l'écran d'accueil »." : "Dans Chrome : menu ⋮ → « Installer l'application ».")
+      + " Évite la navigation privée : tout y est effacé à la fermeture.";
+    $("#install-tip").hidden = false;
+    $("#it-show").addEventListener("click", () => { $("#it-how").hidden = false; $("#it-show").hidden = true; track("installer-comment"); });
+    $("#it-close").addEventListener("click", () => { $("#install-tip").hidden = true; try { localStorage.setItem("frigo.installLater", Date.now() + 7*864e5); } catch {} });
+  }
+}
 
 /* ---------- custom date picker: the phone's native one doesn't open inside the app ---------- */
 const DP_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>`;
