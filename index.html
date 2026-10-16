@@ -242,6 +242,13 @@ h1{font-family:var(--font-display);font-weight:800;font-size:2.3rem;letter-spaci
 .conf-dirty p{margin:0;font-weight:600}
 .shop-secs{display:flex;flex-direction:column;gap:22px}
 .ctag{background:var(--pink-bg);color:var(--pink-fg);border-radius:999px;padding:2px 9px;font-size:.78rem;font-weight:700}
+/* voice input for the product name */
+.namerow{display:flex;gap:8px;align-items:stretch}
+.namerow input{flex:1;min-width:0}
+.mic{flex:none;width:50px;border:0;border-radius:14px;background:var(--green-bg);color:var(--green-fg);display:grid;place-items:center;padding:0}
+.mic[aria-pressed="true"]{background:var(--pink-fg);color:var(--bg);animation:micpulse 1.2s ease-in-out infinite}
+@keyframes micpulse{50%{box-shadow:0 0 0 6px var(--pink-bg)}}
+@media (prefers-reduced-motion:reduce){.mic[aria-pressed="true"]{animation:none}}
 .sheet label.chk{flex-direction:row;align-items:center;gap:10px;font-size:.95rem;color:var(--ink);min-height:44px}
 .sheet label.chk input,.fields label.chk input{width:22px;height:22px;padding:0;flex:none;accent-color:var(--pink-fg)}
 .fields label.chk{display:flex;align-items:center;gap:8px;font-size:.88rem;font-weight:600;color:var(--ink)}
@@ -875,7 +882,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     <textarea id="sh-paste" class="tile-input paste-input" aria-label="Zone pour coller une photo de ticket ou de frigo" inputmode="none"></textarea>
   </div>
   <p class="sheet-or" id="sheet-or">ou à la main</p>
-  <label>Produit<input id="add-name" type="text" placeholder="ex. Yaourts nature" autocomplete="off"></label>
+  <label>Produit<span class="namerow"><input id="add-name" type="text" placeholder="ex. Yaourts nature" autocomplete="off"><button class="mic" id="add-mic" type="button" aria-pressed="false" aria-label="Dicter le produit" hidden><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/></svg></button></span></label>
   <div class="two">
     <label>Rangement<select id="add-zone"><option value="frigo">Frigo</option><option value="congelo">Congélo</option><option value="placard">Placard</option><option value="autre">Autre (sans date)</option></select></label>
     <label id="add-date-l">Date de péremption<input id="add-date" type="date"></label>
@@ -1223,6 +1230,49 @@ function paintSoon(t){
 function track(name, data){ try { window.umami?.track(name, data); } catch {} }
 window.addEventListener("load", () => setTimeout(() => track("ouverture", { mode: matchMedia("(display-mode: standalone)").matches || navigator.standalone ? "appli installée" : "navigateur" }), 800));
 
+/* ---------- voice: say "deux yaourts au frigo" to fill the add form (browser speech recognition, free) ---------- */
+const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+let rec = null;
+const NUMS = {un:1, une:1, deux:2, trois:3, quatre:4, cinq:5, six:6, sept:7, huit:8, neuf:9, dix:10, onze:11, douze:12};
+const SPOKEN_ZONE = {frigo:"frigo", "réfrigérateur":"frigo", "congélo":"congelo", "congélateur":"congelo", "congel":"congelo", placard:"placard"};
+function parseSpoken(text){
+  let t = text.trim().replace(/[.!?]+$/, ""), qty = 1, zone = null;
+  const z = t.match(/\s+(?:au|dans le|en)\s+(frigo|réfrigérateur|congélo|congélateur|congel|placard)$/i);
+  if (z) { zone = SPOKEN_ZONE[z[1].toLowerCase()]; t = t.slice(0, z.index); }
+  const n = t.match(/^(\d+|un|une|deux|trois|quatre|cinq|six|sept|huit|neuf|dix|onze|douze)\s+/i);
+  if (n) { qty = /^\d+$/.test(n[1]) ? +n[1] : NUMS[n[1].toLowerCase()]; t = t.slice(n[0].length); }
+  t = t.replace(/^(du|de la|de l'|de l’|des|le|la|les|l'|l’)\s*/i, "").trim();
+  return { name: t.charAt(0).toUpperCase() + t.slice(1), qty: Math.min(99, Math.max(1, qty)), zone };
+}
+function micStop(){ try { rec?.abort(); } catch {} rec = null; $("#add-mic").setAttribute("aria-pressed", "false"); $("#add-name").placeholder = "ex. Yaourts nature"; }
+if (SpeechRec) {
+  $("#add-mic").hidden = false;
+  $("#add-mic").addEventListener("click", () => {
+    if (rec) return micStop();
+    rec = new SpeechRec(); rec.lang = "fr-FR"; rec.interimResults = true; rec.maxAlternatives = 1;
+    const inp = $("#add-name"), before = inp.value;
+    $("#add-mic").setAttribute("aria-pressed", "true"); inp.placeholder = "Je t'écoute… ex. « deux yaourts au frigo »"; inp.value = "";
+    track("vocal-debut");
+    rec.onresult = e => {
+      const r = e.results[e.results.length-1], said = r[0].transcript;
+      if (!r.isFinal) { inp.value = said; return; }
+      const p = parseSpoken(said);
+      inp.value = p.name;
+      if (!$("#add-qty-l").hidden) $("#add-qty").value = p.qty;
+      if (p.zone) { $("#add-zone").value = p.zone; $("#add-zone").dispatchEvent(new Event("change")); }
+      track("vocal-ok", { quantite: p.qty > 1 ? "oui" : "non", rangement: p.zone ? "oui" : "non" });
+    };
+    rec.onerror = e => {
+      track("vocal-erreur", { code: e.error });
+      if (!inp.value) inp.value = before;
+      toast(e.error==="not-allowed" || e.error==="service-not-allowed" ? "Micro non autorisé : autorise-le dans les réglages de ton navigateur"
+        : e.error==="no-speech" ? "Je n'ai rien entendu, réessaie" : "La dictée n'a pas marché, tape le nom à la main");
+    };
+    rec.onend = () => { rec = null; $("#add-mic").setAttribute("aria-pressed", "false"); inp.placeholder = "ex. Yaourts nature"; };
+    try { rec.start(); } catch { micStop(); toast("La dictée n'a pas marché, tape le nom à la main"); }
+  });
+}
+
 let toastT;
 /* Mamie Gio's sayings (Giovanna's own words): "we throw nothing away", "to save money". Shown now and then, not every time. */
 const gio = (said, p=1) => Math.random() < p ? said + " " : "";
@@ -1382,7 +1432,7 @@ function openSheet(){
   $("#sheet-paste-tile").hidden = $("#sheet-or").hidden = toShop || !scanReady;
   $("#scrim").hidden = false; $("#sheet").hidden = false; $("#add-name").focus();
 }
-function closeSheet(){ $("#scrim").hidden = true; $("#sheet").hidden = true; }
+function closeSheet(){ $("#scrim").hidden = true; $("#sheet").hidden = true; if (typeof micStop==="function" && rec) micStop(); }
 /* FAB menu on Stock: scan, import, paste or add by hand */
 function openMenu(){ $("#fm-photo").hidden = !scanReady; $("#scrim").hidden = false; $("#fab-menu").hidden = false; $("#fab").setAttribute("aria-expanded","true"); }
 function closeMenu(){ $("#fab-menu").hidden = true; $("#fab").setAttribute("aria-expanded","false"); if ($("#sheet").hidden) $("#scrim").hidden = true; }
