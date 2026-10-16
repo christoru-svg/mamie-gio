@@ -19,6 +19,40 @@
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}</style>
 </head>
 <body>
+<script>
+/* ---------- Adresse du petit serveur (Cloudflare Worker) qui parle à l'API Claude.
+   Vide = pas de scan ni de recettes (écrans « Bientôt disponible »). ---------- */
+window.FRIGO_API = "";
+
+/* Hors de Claude, on imite claude.use("sample") en passant par ce serveur,
+   pour que le scan et les recettes marchent dans la PWA. */
+if (!window.claude && window.FRIGO_API) (() => {
+  const toB64 = blob => new Promise((ok, ko) => { const r = new FileReader(); r.onload = () => ok(String(r.result).split(",")[1] || ""); r.onerror = ko; r.readAsDataURL(blob); });
+  const parseJSON = t => {
+    try { return JSON.parse(t); } catch {}
+    const fence = t.match(/```(?:json)?\s*([\s\S]*?)```/); if (fence) { try { return JSON.parse(fence[1]); } catch {} }
+    const a = t.search(/[\[{]/), b = Math.max(t.lastIndexOf("]"), t.lastIndexOf("}"));
+    if (a >= 0 && b > a) { try { return JSON.parse(t.slice(a, b + 1)); } catch {} }
+    throw { code: "invalid_json", message: "Réponse illisible", text: t };
+  };
+  async function call(prompt, opts = {}) {
+    const imgs = opts.images ? [...(opts.images.length !== undefined ? opts.images : [opts.images])] : [];
+    let res;
+    try {
+      res = await fetch(window.FRIGO_API, { method: "POST", signal: opts.signal, headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt: String(prompt), image: imgs[0] ? await toB64(imgs[0]) : undefined }) });
+    } catch (e) { throw { code: e?.name === "AbortError" ? "cancelled" : "upstream_error", message: "Pas de connexion" }; }
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw { code: data.error === "rate_limited" ? "rate_limited" : data.error === "refused" ? "refused" : data.error === "image" ? "image_rejected" : "upstream_error", message: data.message || "Erreur" };
+    return { text: data.text, truncated: !!data.truncated };
+  }
+  const sample = Object.assign((p, o) => call(p, o), {
+    json: async (p, o) => parseJSON((await call(p, o)).text),
+    limits: async () => ({ maxPromptBytes: 20000, images: { maxCount: 1, mediaTypes: ["image/jpeg", "image/png", "image/webp"] } }),
+  });
+  window.claude = { use: async name => name === "sample" ? sample : null };
+})();
+</script>
 <style>
 /* Charte v3 (réf. app de tâches) : fond blanc cassé, gros titres noirs + surtitre en capitales,
    lignes sans cadre avec rond à cocher, pastilles pastel, barre d'onglets en bas, bouton + vert.

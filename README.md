@@ -12,7 +12,16 @@ Application web installable (PWA), sans serveur : tout est enregistré dans le n
 - **Confort food**, recherche, filtres, mode sombre, export des dates vers le calendrier (.ics)
 - **Hors connexion** une fois installée
 
-Le scan des tickets et les idées de recettes s'affichent « Bientôt disponible » : ils demandent un petit serveur qui appelle l'API Claude (étape suivante).
+Le scan (ticket et photo du frigo) et les idées de recettes passent par un petit serveur, `worker/worker.js`, qui appelle l'API Claude. Tant que `window.FRIGO_API` est vide en haut d'`index.html`, ces écrans affichent « Bientôt disponible ».
+
+## Brancher le scan et les recettes
+
+1. Sur [platform.claude.com](https://platform.claude.com), crée une clé API et fixe une limite de dépenses mensuelle.
+2. Sur [dash.cloudflare.com](https://dash.cloudflare.com) : **Workers & Pages → Create → Worker**, nomme-le `frigo-api`, colle le contenu de `worker/worker.js`, puis **Deploy**.
+3. Dans le Worker : **Settings → Variables and Secrets** :
+   - `ANTHROPIC_API_KEY` (type **Secret**) = ta clé API
+   - `ALLOWED_ORIGINS` (type **Text**) = `https://TON-PSEUDO.github.io`
+4. Dans `index.html`, mets l'adresse du Worker dans `window.FRIGO_API` (ex. `https://frigo-api.TON-COMPTE.workers.dev/`), change la version `CACHE` dans `sw.js`, puis commit et push.
 
 ## Fichiers
 
@@ -22,6 +31,7 @@ Le scan des tickets et les idées de recettes s'affichent « Bientôt disponible
 | `manifest.webmanifest` | nom, couleurs et icônes pour l'installation |
 | `sw.js` | service worker : fonctionnement hors connexion |
 | `icons/` | icônes de l'app |
+| `worker/worker.js` | petit serveur (Cloudflare Worker) qui garde la clé API et appelle Claude |
 
 ## Mettre en ligne avec GitHub Pages
 
