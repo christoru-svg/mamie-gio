@@ -507,6 +507,9 @@ h1{font-family:var(--font-display);font-weight:800;font-size:2.3rem;letter-spaci
 .fb-opt{border:1.5px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:9px 14px;font:inherit;font-size:.92rem;font-weight:600;min-height:42px}
 .fb-opt[aria-pressed="true"]{background:var(--green-bg);border-color:transparent;color:var(--green-fg)}
 .fb-opt[aria-pressed="true"]::before{content:"✓ ";font-weight:800}
+.fb-sub{margin:6px 0 -2px;font-size:.88rem;font-weight:700;color:var(--ink)}
+.fb-long{flex-direction:column;align-items:stretch}
+.fb-long .fb-opt{text-align:left;border-radius:14px;padding:11px 14px;line-height:1.35;font-weight:500}
 .fb-name{width:100%;box-sizing:border-box;font:inherit;font-size:16px;border:1.5px solid var(--ring);border-radius:14px;padding:12px 14px;background:var(--surface);color:var(--ink)}
 a.btn{display:inline-flex;align-items:center;justify-content:center;text-decoration:none}
 .fb-to{font-weight:700;color:var(--ink);-webkit-user-select:all;user-select:all;overflow-wrap:anywhere}
@@ -675,8 +678,36 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
       </div>
     </div>
     <div class="fb-q">
+      <p class="conf-l" id="fb-facts-l">Ce qui t'est arrivé</p>
+      <p class="conf-sub">Coche ce qui correspond à ton expérience, en bien comme en moins bien. Rien d'obligatoire.</p>
+      <p class="fb-sub">Ajouter des produits</p>
+      <div class="fb-opts fb-long" role="group" aria-label="Ajouter des produits" data-g="facts" data-multi="1">
+        <button class="fb-opt" type="button" aria-pressed="false">Le scan du ticket a reconnu correctement la plupart de mes produits</button>
+        <button class="fb-opt" type="button" aria-pressed="false">Le scan du ticket a oublié ou mal nommé des produits</button>
+        <button class="fb-opt" type="button" aria-pressed="false">La photo du frigo a reconnu correctement la plupart des aliments</button>
+        <button class="fb-opt" type="button" aria-pressed="false">La photo du frigo a oublié ou mal reconnu des aliments</button>
+        <button class="fb-opt" type="button" aria-pressed="false">Les dates de péremption proposées étaient à corriger</button>
+        <button class="fb-opt" type="button" aria-pressed="false">Je n'ai pas réussi à prendre ou envoyer une photo</button>
+      </div>
+      <p class="fb-sub">Au quotidien</p>
+      <div class="fb-opts fb-long" role="group" aria-label="Au quotidien" data-g="facts" data-multi="1">
+        <button class="fb-opt" type="button" aria-pressed="false">J'ai mis mon stock à jour plusieurs fois</button>
+        <button class="fb-opt" type="button" aria-pressed="false">J'ai arrêté de mettre mon stock à jour</button>
+        <button class="fb-opt" type="button" aria-pressed="false">Je n'ai pas trouvé comment faire quelque chose</button>
+        <button class="fb-opt" type="button" aria-pressed="false">La liste de courses m'a servi en magasin</button>
+        <button class="fb-opt" type="button" aria-pressed="false">Il me manque une fonction (précise-la dans ton message)</button>
+      </div>
+      <p class="fb-sub">Affichage</p>
+      <div class="fb-opts fb-long" role="group" aria-label="Affichage" data-g="facts" data-multi="1">
+        <button class="fb-opt" type="button" aria-pressed="false">Un texte était trop petit ou peu lisible</button>
+        <button class="fb-opt" type="button" aria-pressed="false">Un bouton était difficile à trouver ou à toucher</button>
+        <button class="fb-opt" type="button" aria-pressed="false">Un élément était coupé, décalé ou mal affiché sur mon téléphone</button>
+        <button class="fb-opt" type="button" aria-pressed="false">L'app a été lente, a planté ou a perdu des données</button>
+      </div>
+    </div>
+    <div class="fb-q">
       <label class="conf-l" for="fb-msg">Ton message</label>
-      <textarea id="fb-msg" rows="5" placeholder="Ce qui t'a plu, ce qui t'a bloqué, ce qui manque…"></textarea>
+      <textarea id="fb-msg" rows="5" placeholder="Un exemple, un produit mal reconnu, une idée… Tout détail aide."></textarea>
     </div>
     <div class="fb-q">
       <label class="conf-l" for="fb-name">Ton prénom (facultatif)</label>
@@ -1857,10 +1888,10 @@ let fbPrev = "stock";
 function openFeedback(){ if (tab!=="feedback") fbPrev = tab; window.scrollTo(0,0); showTab("feedback"); fbUpdate(); }
 function fbPicked(g){ return [...document.querySelectorAll(`#view-feedback [data-g="${g}"] [aria-pressed="true"]`)].map(b => b.textContent.trim()); }
 function fbText(){
-  const name = $("#fb-name").value.trim(), mood = fbPicked("mood"), topics = fbPicked("topics"), msg = $("#fb-msg").value.trim();
+  const name = $("#fb-name").value.trim(), mood = fbPicked("mood"), topics = fbPicked("topics"), facts = fbPicked("facts"), msg = $("#fb-msg").value.trim();
   return {
     subject: `Frigo sans ouvrir · avis${name ? " de " + name : ""}`,
-    body: [mood.length ? `L'app me sert : ${mood[0]}` : "", topics.length ? `Ça concerne : ${topics.join(", ")}` : "", "", msg || "(pas de message)", "", name ? `— ${name}` : ""].filter((l,i,a) => l || (i>0 && a[i-1])).join("\n").trim()
+    body: [mood.length ? `L'app me sert : ${mood[0]}` : "", topics.length ? `Ça concerne : ${topics.join(", ")}` : "", facts.length ? "Ce qui m'est arrivé :\n" + facts.map(f => "- " + f).join("\n") : "", "", msg || "(pas de message)", "", name ? `— ${name}` : ""].filter((l,i,a) => l || (i>0 && a[i-1])).join("\n").trim()
   };
 }
 function fbUpdate(){ const t = fbText(); $("#fb-send").href = `mailto:${FB_TO}?subject=${encodeURIComponent(t.subject)}&body=${encodeURIComponent(t.body)}`; }
