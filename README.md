@@ -1,6 +1,6 @@
 # Mamie Gio
 
-Mamie Gio se souvient de ton frigo à ta place : ce que tu as chez toi, ce qui va bientôt périmer, et ce qu'il faut racheter.
+Ton frigo, sans l'ouvrir. Mamie Gio se souvient à ta place de ce que tu as chez toi, ce qui va bientôt périmer, et ce qu'il faut racheter.
 
 Application web installable (PWA), sans serveur : tout est enregistré dans le navigateur du téléphone.
 
@@ -35,16 +35,16 @@ Le scan (ticket et photo du frigo) et les idées de recettes passent par un peti
 
 ## Mettre en ligne avec GitHub Pages
 
-1. Crée un dépôt vide sur [github.com/new](https://github.com/new), par exemple `frigo-sans-ouvrir`.
+1. Crée un dépôt vide sur [github.com/new](https://github.com/new), par exemple `mamie-gio`.
 2. Dans ce dossier, relie-le et envoie le code (remplace `christoru-svg`) :
 
    ```bash
-   git remote add origin https://github.com/christoru-svg/frigo-sans-ouvrir.git
+   git remote add origin https://github.com/christoru-svg/mamie-gio.git
    git push -u origin main
    ```
 
 3. Sur GitHub : **Settings → Pages → Build and deployment → Source : Deploy from a branch**, branche `main`, dossier `/ (root)`, puis **Save**.
-4. Après une ou deux minutes, l'app est en ligne sur `https://christoru-svg.github.io/frigo-sans-ouvrir/`.
+4. Après une ou deux minutes, l'app est en ligne sur `https://christoru-svg.github.io/mamie-gio/`.
 
 ## Installer sur le téléphone
 

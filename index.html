@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Mamie Gio</title>
-<meta name="description" content="Mamie Gio se souvient de ce qu'il y a dans ton frigo : stock, dates de péremption et liste de courses.">
+<meta name="description" content="Mamie Gio, ton frigo sans l'ouvrir : stock, dates de péremption et liste de courses.">
 <meta name="theme-color" content="#fafaf8" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#121212" media="(prefers-color-scheme: dark)">
 <link rel="manifest" href="manifest.webmanifest">
@@ -739,7 +739,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
   </header>
   <section class="sup-card">
     <div class="sup-art" aria-hidden="true">☕</div>
-    <p>Mamie Gio est gratuite et sans pub. Je l'ai créée pour gaspiller moins, dépenser moins et avoir une chose de moins à retenir.</p>
+    <p>Mamie Gio, ton frigo sans l'ouvrir, est gratuite et sans pub. Je l'ai créée pour gaspiller moins, dépenser moins et avoir une chose de moins à retenir.</p>
     <p class="sup-l">Tes dons paient l’API pour le scan et les futures recettes ☕</p>
     <a class="btn green" id="sup-go" href="https://ko-fi.com/christorusvg" target="_blank" rel="noopener">Offrir un café sur Ko-fi</a>
     <p class="sup-h">Tu arriveras sur ma page personnelle Ko-fi. Tester l'app et donner ton avis m'aide déjà beaucoup : le don est vraiment facultatif.</p>
@@ -1834,9 +1834,9 @@ document.addEventListener("click", e => {
 
 /* ---------- onboarding (first visit) + "?" button to replay it ---------- */
 const OB = [
-  {c:"pink", t:"Ce qui presse, en un coup d'œil",
+  {c:"pink", t:"Mamie Gio, ton frigo sans l'ouvrir",
    art:`<div class="mk mk-hero"><div class="mk-h"><b>À manger en premier</b><span>2</span></div><div class="mk-r"><i></i>Crème fraîche<em>aujourd'hui</em></div><div class="mk-r"><i></i>Tofu fumé<em>demain</em></div></div>`,
-   x:"Moi, c'est Mamie Gio : je retiens ton stock et ses dates, pour que tu n'aies pas à ouvrir le frigo. Ce qui périme dans les 2 jours s'affiche tout en haut du Stock."},
+   x:"Je retiens ton stock et ses dates à ta place. Ce qui périme dans les 2 jours s'affiche tout en haut du Stock, pour le manger avant de le jeter."},
   {c:"blue", t:"Ajoute tes produits",
    art:`<div class="mk mk-list"><div class="mk-row"><i></i><span>Yaourts nature</span><em class="warn">dans 3 j</em></div><div class="mk-row"><i></i><span>Comté</span><em class="ok">dans 19 j</em></div><div class="mk-fab">+</div></div>`,
    x:() => "Le bouton + ajoute un produit à la main" + (hasAI() ? ", ou lit ton ticket de caisse à ta place." : ". Bientôt, il pourra aussi lire ton ticket de caisse.") + " Touche une date pour la changer."},
