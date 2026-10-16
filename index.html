@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Mamie Ginette</title>
-<meta name="description" content="Mamie Ginette se souvient de ce qu'il y a dans ton frigo : stock, dates de péremption et liste de courses.">
+<title>Mamie Jo</title>
+<meta name="description" content="Mamie Jo se souvient de ce qu'il y a dans ton frigo : stock, dates de péremption et liste de courses.">
 <meta name="theme-color" content="#fafaf8" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#121212" media="(prefers-color-scheme: dark)">
 <link rel="manifest" href="manifest.webmanifest">
@@ -13,7 +13,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="Ginette">
+<meta name="apple-mobile-web-app-title" content="Mamie Jo">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap">
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}</style>
@@ -718,7 +718,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     </div>
     <div class="fb-q">
       <label class="conf-l" for="fb-idea">Une idée de nom pour l'app ? (facultatif)</label>
-      <input class="fb-name" id="fb-idea" type="text" autocomplete="off" placeholder="Mamie Ginette, c'est provisoire : propose !">
+      <input class="fb-name" id="fb-idea" type="text" autocomplete="off" placeholder="Si un nom te vient en tête">
     </div>
     <div class="fb-q">
       <label class="conf-l" for="fb-name">Ton prénom (facultatif)</label>
@@ -739,7 +739,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
   </header>
   <section class="sup-card">
     <div class="sup-art" aria-hidden="true">☕</div>
-    <p>Mamie Ginette est gratuite et sans pub. Je l'ai créée pour gaspiller moins, dépenser moins et avoir une chose de moins à retenir.</p>
+    <p>Mamie Jo est gratuite et sans pub. Je l'ai créée pour gaspiller moins, dépenser moins et avoir une chose de moins à retenir.</p>
     <p class="sup-l">Tes dons paient l’API pour le scan et les futures recettes ☕</p>
     <a class="btn green" id="sup-go" href="https://ko-fi.com/christorusvg" target="_blank" rel="noopener">Offrir un café sur Ko-fi</a>
     <p class="sup-h">Tu arriveras sur ma page personnelle Ko-fi. Tester l'app et donner ton avis m'aide déjà beaucoup : le don est vraiment facultatif.</p>
@@ -1378,7 +1378,7 @@ async function exportIcs(){
       `SUMMARY:${icsEsc(`${i.dateType==="DDM"?"À consommer de préférence":"Péremption"} : ${i.name} (${ZONES[i.zone]||""})`)}`,
       "BEGIN:VALARM","TRIGGER:-PT12H","ACTION:DISPLAY",`DESCRIPTION:${icsEsc(i.name+" à manger")}`,"END:VALARM","END:VEVENT"].join("\r\n");
   });
-  const ics = ["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//Mamie Ginette//FR","CALSCALE:GREGORIAN",...ev,"END:VCALENDAR"].join("\r\n");
+  const ics = ["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//Mamie Jo//FR","CALSCALE:GREGORIAN",...ev,"END:VCALENDAR"].join("\r\n");
   const dl = await window.claude?.use?.("downloads");
   if (!dl) { // standalone app: regular file download
     const a = document.createElement("a");
@@ -1836,7 +1836,7 @@ document.addEventListener("click", e => {
 const OB = [
   {c:"pink", t:"Ce qui presse, en un coup d'œil",
    art:`<div class="mk mk-hero"><div class="mk-h"><b>À manger en premier</b><span>2</span></div><div class="mk-r"><i></i>Crème fraîche<em>aujourd'hui</em></div><div class="mk-r"><i></i>Tofu fumé<em>demain</em></div></div>`,
-   x:"Moi, c'est Mamie Ginette : je retiens ton stock et ses dates, pour que tu n'aies pas à ouvrir le frigo. Ce qui périme dans les 2 jours s'affiche tout en haut du Stock."},
+   x:"Moi, c'est Mamie Jo : je retiens ton stock et ses dates, pour que tu n'aies pas à ouvrir le frigo. Ce qui périme dans les 2 jours s'affiche tout en haut du Stock."},
   {c:"blue", t:"Ajoute tes produits",
    art:`<div class="mk mk-list"><div class="mk-row"><i></i><span>Yaourts nature</span><em class="warn">dans 3 j</em></div><div class="mk-row"><i></i><span>Comté</span><em class="ok">dans 19 j</em></div><div class="mk-fab">+</div></div>`,
    x:() => "Le bouton + ajoute un produit à la main" + (hasAI() ? ", ou lit ton ticket de caisse à ta place." : ". Bientôt, il pourra aussi lire ton ticket de caisse.") + " Touche une date pour la changer."},
@@ -1927,7 +1927,7 @@ function fbPicked(g){ return [...document.querySelectorAll(`#view-feedback [data
 function fbText(){
   const name = $("#fb-name").value.trim(), mood = fbPicked("mood"), facts = fbPicked("facts"), msg = $("#fb-msg").value.trim(), idea = $("#fb-idea").value.trim();
   return {
-    subject: `Mamie Ginette · avis${name ? " de " + name : ""}`,
+    subject: `Mamie Jo · avis${name ? " de " + name : ""}`,
     body: [mood.length ? `L'app me sert : ${mood[0]}` : "", facts.length ? "Ce qui m'est arrivé :\n" + facts.map(f => "- " + f).join("\n") : "", "", msg || "(pas de message)", idea ? `\nIdée de nom : ${idea}` : "", "", name ? `— ${name}` : ""].filter((l,i,a) => l || (i>0 && a[i-1])).join("\n").trim()
   };
 }

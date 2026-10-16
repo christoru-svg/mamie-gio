@@ -1,7 +1,7 @@
 {
-  "name": "Mamie Ginette",
-  "short_name": "Ginette",
-  "description": "Mamie Ginette se souvient de ce qu'il y a dans ton frigo : stock, dates de péremption et liste de courses.",
+  "name": "Mamie Jo",
+  "short_name": "Mamie Jo",
+  "description": "Mamie Jo se souvient de ce qu'il y a dans ton frigo : stock, dates de péremption et liste de courses.",
   "lang": "fr",
   "start_url": "./",
   "scope": "./",
