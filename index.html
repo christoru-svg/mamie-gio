@@ -476,8 +476,20 @@ h1{font-family:var(--font-display);font-weight:800;font-size:2.3rem;letter-spaci
 .rv-dup{font-size:.84rem;font-weight:600;color:var(--soft)}
 .sheet-or{margin:-4px 0 -6px;text-align:center;font-size:.82rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
 /* courses: basket */
-.cart{padding-top:6px;border-top:1px dashed var(--ring)}
-.cart-done{align-self:stretch;margin-top:6px}
+/* basket: always docked above the nav, next to the + button; folded unless opened */
+.cartbar{position:fixed;z-index:9;left:max(20px,calc(50% - 240px));right:calc(max(20px,calc(50% - 240px)) + 76px);bottom:calc(var(--nav-h) + 18px + env(safe-area-inset-bottom,0px));background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:24px;box-shadow:0 8px 24px rgba(0,0,0,.14);display:flex;flex-direction:column;max-height:60vh;overflow:hidden}
+.cartbar-h{display:flex;align-items:center;gap:6px;padding:8px 8px 8px 12px;min-height:64px;box-sizing:border-box;flex:none}
+.cartbar-t{flex:1;min-width:0;display:flex;align-items:center;gap:8px;border:0;background:none;font:inherit;font-weight:700;color:var(--ink);padding:6px 0;min-height:44px;text-align:left}
+.cartbar-t>svg{width:22px;height:22px;flex:none}
+@media (max-width:420px){.cartbar-l{display:none}}
+.cartbar-t .chev{width:16px;height:16px;color:var(--soft);transition:transform .2s}
+.cartbar.open .cartbar-t .chev{transform:rotate(180deg)}
+.cartbar-h .btn{padding:10px 14px;min-height:44px;font-size:.88rem;white-space:nowrap;flex:none}
+.cartbar-body{overflow-y:auto;overscroll-behavior:contain;padding:12px 14px 10px;border-bottom:1px dashed var(--ring)}
+.cartbar-body .conf-h{margin:8px 0 0}
+.cartbar.pop .bubble{animation:cartpop .45s ease}
+@keyframes cartpop{40%{transform:scale(1.45)}}
+@media (prefers-reduced-motion:reduce){.cartbar.pop .bubble{animation:none}}
 /* scan review: compact lines */
 .rv{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
 .rv-row{border:1px solid var(--line);border-radius:16px;background:var(--surface);padding:8px 8px 8px 12px;display:flex;flex-direction:column;gap:10px}
@@ -1129,6 +1141,8 @@ function render(){
     (personal ? `<p class="status" style="font-size:.85rem;width:100%">Ton frigo est enregistré sur cet appareil uniquement.</p>` : "");
 
   // shopping, grouped by storage place like the Stock
+  const CART_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4h2.5l2.2 11h10.6l2-8H6.6"/><circle cx="9.5" cy="19.5" r="1.4"/><circle cx="17" cy="19.5" r="1.4"/></svg>`,
+        CHEVRON = `<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 15 6-6 6 6"/></svg>`;
   const shopRow = i => `<li class="swipe"><div class="row ${i.inCart?"done":""}" data-row="${i.id}">
         <button class="check" data-bought="${i.id}" aria-label="${esc(i.name)} : ${i.inCart?"retirer du panier":"mettre dans le panier"}">${CHECK}</button>
         <div style="min-width:0"><div class="title">${esc(i.name)}</div>
@@ -1139,10 +1153,11 @@ function render(){
        <ul class="rows">${l.map(shopRow).join("")}</ul></section>` : ""; };
   $("#shop").innerHTML = shop.length
     ? `<div class="shop-secs">${toBuy.length ? `<div class="section-h" style="margin-bottom:-10px"><p class="eyebrow">À acheter</p><span class="bubble">${toBuy.length}</span></div>${Object.keys(ZONES).map(shopSec).join("")}` : `<p class="empty"><strong>Tout est dans le panier.</strong></p>`}
-       ${cart.length ? `<section class="section cart"><div class="section-h"><p class="eyebrow">Dans le panier</p><span class="bubble">${cart.length}</span></div>
-         <ul class="rows">${cart.map(shopRow).join("")}</ul>
-         <button class="btn green cart-done" id="cart-done" type="button">J'ai rangé mes courses</button>
-         <p class="conf-h">Remet ${cart.length>1?`ces ${cart.length} produits`:"ce produit"} dans le stock, avec de nouvelles dates.</p></section>` : ""}</div>`
+       ${cart.length ? `<section class="cartbar${cartOpen?" open":""}" aria-label="Panier">
+         <div class="cartbar-body" id="cartbar-body"${cartOpen?"":" hidden"}><ul class="rows">${cart.map(shopRow).join("")}</ul>
+           <p class="conf-h">« J'ai tout rangé » remet ${cart.length>1?`ces ${cart.length} produits`:"ce produit"} dans le stock, avec de nouvelles dates.</p></div>
+         <div class="cartbar-h"><button class="cartbar-t" id="cart-toggle" type="button" aria-expanded="${cartOpen}" aria-controls="cartbar-body" aria-label="Panier : ${cart.length} produit${cart.length>1?"s":""}">${CART_ICON}<span class="cartbar-l">Panier</span><span class="bubble">${cart.length}</span>${CHEVRON}</button>
+           <button class="btn green" id="cart-done" type="button">J'ai tout rangé</button></div></section>` : ""}</div>`
     : `<p class="empty"><strong>Rien à racheter.</strong><br>Coche le rond d'un produit dans le stock quand tu l'as fini : il arrive ici.</p>`;
 
   showTab(tab);
@@ -1151,6 +1166,7 @@ function render(){
 function showTab(t){
   if (t==="recipes" && !recipesOn()) t = "stock";
   tab = t; try { localStorage.setItem("frigo.tab", t); } catch {}
+  if (t!=="shop") cartOpen = false; // the basket is folded again when you come back
   for (const b of document.querySelectorAll(".nav button")) b.setAttribute("aria-selected", b.dataset.tab===t);
   $("#view-stock").hidden = t!=="stock"; $("#view-shop").hidden = t!=="shop";
   const soon = (t==="scan" || t==="recipes") && !hasAI();
@@ -1180,7 +1196,7 @@ let toastT;
 /* Mamie Gio's sayings (Giovanna's own words): "we throw nothing away", "to save money". Shown now and then, not every time. */
 const gio = (said, p=1) => Math.random() < p ? said + " " : "";
 /* undo: list of item snapshots to write back (a deleted item is recreated from its snapshot) */
-function toast(msg, undo){
+function toast(msg, undo, ms){
   const el = $("#toast"); el.innerHTML = ""; el.hidden = false;
   const t = document.createElement("span"); t.textContent = msg; el.append(t);
   if (undo?.length) {
@@ -1188,7 +1204,7 @@ function toast(msg, undo){
     b.onclick = async () => { el.hidden = true; clearTimeout(toastT); if (typeof undo==="function") await undo(); else for (const it of undo) await put(it); };
     el.append(b);
   }
-  clearTimeout(toastT); toastT = setTimeout(()=>el.hidden=true, undo?.length ? 6000 : 3200);
+  clearTimeout(toastT); toastT = setTimeout(()=>el.hidden=true, ms || (undo?.length ? 6000 : 3200));
 }
 
 /* From the summary card: show the item in the stock list and make it blink. */
@@ -1204,6 +1220,7 @@ function goTo(id){
 }
 
 /* Tick the circle, show it checked for a moment, then move the item. */
+let cartOpen = false; // the basket stays folded unless the viewer opens it
 function tickThen(id, fn){
   for (const row of document.querySelectorAll(`[data-row="${CSS.escape(id)}"]`)) row.classList.add("done");
   setTimeout(fn, 450);
@@ -1269,8 +1286,10 @@ document.addEventListener("click", async e => {
     await remove(it.id); toast(shop ? `${it.name} retiré des courses` : `${it.name} supprimé`, [it]); return; }
   if (b.dataset.bought) { const it=find(b.dataset.bought); if (!it) return;
     if (it.inCart) await put({...it, inCart:false});
-    else tickThen(it.id, () => put({...it, inCart:true})); }
+    else tickThen(it.id, async () => { await put({...it, inCart:true}); $(".cartbar")?.classList.add("pop"); toast(`Dans le panier : ${it.name} ✓`, null, 1600); }); }
+  if (b.id==="cart-toggle") { cartOpen = !cartOpen; const bar = b.closest(".cartbar"); bar.classList.toggle("open", cartOpen); $("#cartbar-body").hidden = !cartOpen; b.setAttribute("aria-expanded", cartOpen); return; }
   if (b.id==="cart-done") { const cart = items.filter(i=>i.status==="shop" && i.inCart); if (!cart.length) return;
+    cartOpen = false;
     for (const it of cart) await rebuy(it);
     toast(`${gio("Per risparmià !")}${cart.length} produit${cart.length>1?"s":""} rangé${cart.length>1?"s":""} dans le stock`, cart); }
   if (b.id==="clear-ex") { const ex = items.filter(i=>i.example); for (const it of ex) await remove(it.id); toast(`${ex.length} exemples effacés`, ex); }
