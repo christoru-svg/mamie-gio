@@ -108,6 +108,8 @@ button{cursor:pointer}
 .kmenu{position:fixed;z-index:35;min-width:250px;max-width:calc(100% - 24px);background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:18px;padding:6px;box-shadow:0 14px 40px rgba(0,0,0,.18);display:flex;flex-direction:column}
 .kmenu button{display:flex;align-items:center;gap:12px;border:0;background:transparent;color:var(--ink);font:inherit;font-size:1rem;font-weight:600;text-align:left;padding:12px;min-height:48px;border-radius:12px;width:100%}
 .kmenu button:hover,.kmenu button:focus-visible{background:var(--grey-bg);outline:none}
+.kmenu button[aria-disabled="true"]{color:var(--soft);cursor:default}
+.kmenu button[aria-disabled="true"]:hover{background:transparent}
 .kmenu button>svg{width:22px;height:22px;flex:none;color:var(--soft)}
 .kmenu .klabel{flex:1}
 .soon-tag{font-size:.7rem;font-weight:700;letter-spacing:.03em;text-transform:uppercase;background:var(--yellow-bg);color:var(--yellow-fg);border-radius:999px;padding:4px 8px}
@@ -1123,6 +1125,7 @@ function render(){
 }
 
 function showTab(t){
+  if (t==="recipes" && !recipesOn()) t = "stock";
   tab = t; try { localStorage.setItem("frigo.tab", t); } catch {}
   for (const b of document.querySelectorAll(".nav button")) b.setAttribute("aria-selected", b.dataset.tab===t);
   $("#view-stock").hidden = t!=="stock"; $("#view-shop").hidden = t!=="shop";
@@ -1138,6 +1141,8 @@ function showTab(t){
 }
 /* Scan and recipes need Claude: outside claude.ai they show a "coming soon" screen. */
 function hasAI(){ return !!window.claude?.use; }
+/* Recipes are paused ("Bientôt" in the menu) until testers ask for them. When back: Haiku, generated on demand. */
+function recipesOn(){ return false; }
 function paintSoon(t){
   const S = {
     scan: {e:"Ajouter", t:"Scanner un ticket", a:"🧾", x:"Prends ton ticket de caisse en photo : les produits, les quantités et les dates de péremption se rempliront tout seuls. En attendant, ajoute tes produits avec le bouton + du Stock."},
@@ -1812,7 +1817,7 @@ const OB = [
    x:() => "Le bouton + ajoute un produit à la main" + (hasAI() ? ", ou lit ton ticket de caisse à ta place." : ". Bientôt, il pourra aussi lire ton ticket de caisse.") + " Touche une date pour la changer."},
   {c:"green", t:"Fini ? Coche-le",
    art:`<div class="mk mk-done"><div class="mk-row done"><i>✓</i><span>Lait</span></div><div class="mk-arrow" aria-hidden="true">→</div><div class="mk-chip">Courses</div></div>`,
-   x:"Le produit part dans tes Courses. Tout le reste (recettes, confort food, mode sombre, ton avis) se trouve dans l'onglet Plus."}
+   x:"Le produit part dans tes Courses. Tout le reste (confort food, mode sombre, ton avis) se trouve dans l'onglet Plus."}
 ];
 let obI = 0, obLast = null;
 function obPaint(){
@@ -1852,7 +1857,7 @@ document.addEventListener("keydown", e => {
 /* kebab menu: scan, recipes, help, dark mode */
 const KEBAB = `<svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>`;
 let kAnchor = null;
-function kPaint(){ const ai = hasAI(); $("#kmenu").querySelectorAll(".soon-tag").forEach(s => s.hidden = ai); $("#k-theme").setAttribute("aria-checked", isDark()); }
+function kPaint(){ const ai = hasAI(); $("#kmenu").querySelectorAll(".soon-tag").forEach(s => s.hidden = ai && !(s.closest('[data-k="recipes"]') && !recipesOn())); $('#kmenu [data-k="recipes"]').setAttribute("aria-disabled", !recipesOn()); $("#k-theme").setAttribute("aria-checked", isDark()); }
 function kClose(refocus){ $("#kmenu").hidden = true; kAnchor?.setAttribute("aria-expanded","false"); if (refocus) kAnchor?.focus(); kAnchor = null; }
 function kOpen(a){
   if (!$("#kmenu").hidden && kAnchor===a) return kClose();
@@ -1866,6 +1871,7 @@ function kOpen(a){
 { const h = $("#nav-more"); h.addEventListener("click", e => { e.stopPropagation(); kOpen(h); }); }
 $("#kmenu").addEventListener("click", e => {
   const b = e.target.closest("button[data-k]"); if (!b) return; e.stopPropagation();
+  if (b.getAttribute("aria-disabled")==="true") return;
   const k = b.dataset.k;
   if (k==="theme") { const next = isDark() ? "light" : "dark"; document.documentElement.dataset.theme = next; try { localStorage.setItem("frigo.theme", next); } catch {} paintThemeBtns(); kPaint(); return; }
   kClose();
