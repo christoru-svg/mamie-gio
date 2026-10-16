@@ -567,6 +567,25 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
 .ob-act .btn{flex:1}
 .ob-act .btn[hidden]{display:none}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+/* small phones (iPhone 12/13 mini, SE…): tighter gutters so names don't wrap on 3 lines */
+@media (max-width:380px){
+  .wrap{padding-inline:16px;padding-top:20px;gap:22px}
+  .filters{margin:-10px -16px -14px;padding:10px 16px 12px;scroll-padding:0 16px}
+  h1{font-size:2rem}
+  .hero{padding:16px 14px;border-radius:24px}
+  .hero-top,.hero-toggle{font-size:1rem}
+  .hero-list li{padding:4px 4px 4px 8px;gap:8px}
+  .hgo{flex-wrap:wrap;column-gap:6px;row-gap:2px;padding:8px 4px}
+  .hgo .hname{flex-basis:calc(100% - 22px)}
+  .hgo .hdue{order:3}
+  .row{grid-template-columns:28px 1fr auto;gap:10px}
+  .title{font-size:1rem}
+  .meta{font-size:.86rem;gap:6px 8px}
+  .fchip{font-size:.84rem}
+  .sheet{padding-inline:16px}
+  .cartbar-t{padding-inline:16px}
+  .cartbar-body{padding-inline:16px}
+}
 </style>
 
 <!-- STOCK -->
