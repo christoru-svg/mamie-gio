@@ -20,7 +20,7 @@ Le scan (ticket et photo du frigo) et les idées de recettes passent par un peti
 2. Sur [dash.cloudflare.com](https://dash.cloudflare.com) : **Workers & Pages → Create → Worker**, nomme-le `frigo-api`, colle le contenu de `worker/worker.js`, puis **Deploy**.
 3. Dans le Worker : **Settings → Variables and Secrets** :
    - `ANTHROPIC_API_KEY` (type **Secret**) = ta clé API
-   - `ALLOWED_ORIGINS` (type **Text**) = `https://TON-PSEUDO.github.io`
+   - `ALLOWED_ORIGINS` (type **Text**) = `https://christoru-svg.github.io`
 4. Dans `index.html`, mets l'adresse du Worker dans `window.FRIGO_API` (ex. `https://frigo-api.TON-COMPTE.workers.dev/`), change la version `CACHE` dans `sw.js`, puis commit et push.
 
 ## Fichiers
@@ -36,15 +36,15 @@ Le scan (ticket et photo du frigo) et les idées de recettes passent par un peti
 ## Mettre en ligne avec GitHub Pages
 
 1. Crée un dépôt vide sur [github.com/new](https://github.com/new), par exemple `frigo-sans-ouvrir`.
-2. Dans ce dossier, relie-le et envoie le code (remplace `TON-PSEUDO`) :
+2. Dans ce dossier, relie-le et envoie le code (remplace `christoru-svg`) :
 
    ```bash
-   git remote add origin https://github.com/TON-PSEUDO/frigo-sans-ouvrir.git
+   git remote add origin https://github.com/christoru-svg/frigo-sans-ouvrir.git
    git push -u origin main
    ```
 
 3. Sur GitHub : **Settings → Pages → Build and deployment → Source : Deploy from a branch**, branche `main`, dossier `/ (root)`, puis **Save**.
-4. Après une ou deux minutes, l'app est en ligne sur `https://TON-PSEUDO.github.io/frigo-sans-ouvrir/`.
+4. Après une ou deux minutes, l'app est en ligne sur `https://christoru-svg.github.io/frigo-sans-ouvrir/`.
 
 ## Installer sur le téléphone
 

@@ -22,7 +22,7 @@
 <script>
 /* ---------- Adresse du petit serveur (Cloudflare Worker) qui parle à l'API Claude.
    Vide = pas de scan ni de recettes (écrans « Bientôt disponible »). ---------- */
-window.FRIGO_API = "";
+window.FRIGO_API = "https://frigo-api.chris-depaola-toru.workers.dev/";
 
 /* Hors de Claude, on imite claude.use("sample") en passant par ce serveur,
    pour que le scan et les recettes marchent dans la PWA. */
