@@ -1,7 +1,7 @@
 {
-  "name": "Mamie Jo",
-  "short_name": "Mamie Jo",
-  "description": "Mamie Jo se souvient de ce qu'il y a dans ton frigo : stock, dates de péremption et liste de courses.",
+  "name": "Mamie Gio",
+  "short_name": "Mamie Gio",
+  "description": "Mamie Gio se souvient de ce qu'il y a dans ton frigo : stock, dates de péremption et liste de courses.",
   "lang": "fr",
   "start_url": "./",
   "scope": "./",

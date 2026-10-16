@@ -1,6 +1,6 @@
-# Mamie Jo
+# Mamie Gio
 
-Mamie Jo se souvient de ton frigo à ta place : ce que tu as chez toi, ce qui va bientôt périmer, et ce qu'il faut racheter.
+Mamie Gio se souvient de ton frigo à ta place : ce que tu as chez toi, ce qui va bientôt périmer, et ce qu'il faut racheter.
 
 Application web installable (PWA), sans serveur : tout est enregistré dans le navigateur du téléphone.
 
