@@ -1,6 +1,6 @@
 /* Frigo sans ouvrir : works offline.
    App files: network first (so updates show up), cache as fallback. Fonts: cache first. */
-const CACHE = "frigo-v11";
+const CACHE = "frigo-v12";
 const APP = ["./", "index.html", "manifest.webmanifest", "icons/icon-192.png", "icons/icon-512.png", "icons/apple-touch-icon.png", "icons/favicon-32.png"];
 
 self.addEventListener("install", e => {
