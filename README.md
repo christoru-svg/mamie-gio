@@ -9,7 +9,7 @@ Application web installable (PWA), sans serveur : tout est enregistré dans le n
 - **Stock** par rangement (frigo, congélo, placard, autre), avec dates de péremption et quantités
 - **À manger en premier** : ce qui périme dans les 2 jours, en haut de l'écran
 - **Courses** : un produit fini part dans la liste, et revient dans le stock quand tu le coches comme acheté
-- **Confort food**, recherche, filtres, mode sombre, export des dates vers le calendrier (.ics)
+- **Comfort food**, recherche, filtres, mode sombre, export des dates vers le calendrier (.ics)
 - **Hors connexion** une fois installée
 
 Le scan (ticket et photo du frigo) et les idées de recettes passent par un petit serveur, `worker/worker.js`, qui appelle l'API Claude. Tant que `window.FRIGO_API` est vide en haut d'`index.html`, ces écrans affichent « Bientôt disponible ».
