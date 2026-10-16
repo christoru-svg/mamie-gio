@@ -13,6 +13,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
+<script defer src="https://cloud.umami.is/script.js" data-website-id="a711d923-d3d0-4465-aa46-66d76f3728b6"></script>
 <meta name="apple-mobile-web-app-title" content="Mamie Gio">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap">
@@ -743,6 +744,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     </div>
     <div class="conf-act"><a class="btn green" id="fb-send" href="mailto:chris.depaola.toru@gmail.com">Envoyer par e-mail</a><button class="btn plain" id="fb-copy" type="button">Copier le message</button></div>
     <p class="conf-h">« Envoyer par e-mail » ouvre ton app mail avec le message prêt : il reste à appuyer sur Envoyer. Si rien ne s'ouvre, copie le message et envoie-le à <span class="fb-to">chris.depaola.toru@gmail.com</span>.</p>
+    <p class="conf-h">L'app compte les visites et les clics de façon anonyme, sans cookies, pour savoir ce qui sert. Elle ne compte jamais ce que contient ton stock.</p>
     <button class="fb-sup" type="button" id="fb-sup">Soutenir le projet ☕</button>
   </section>
 </main>
@@ -1198,6 +1200,10 @@ function paintSoon(t){
   $("#soon-eyebrow").textContent = S.e; $("#soon-title").textContent = S.t; $("#soon-art").textContent = S.a; $("#soon-txt").textContent = S.x;
 }
 
+/* Anonymous usage counts (Umami, no cookies): only which action happened, never product names or the stock. */
+function track(name, data){ try { window.umami?.track(name, data); } catch {} }
+window.addEventListener("load", () => setTimeout(() => track("ouverture", { mode: matchMedia("(display-mode: standalone)").matches || navigator.standalone ? "appli installée" : "navigateur" }), 800));
+
 let toastT;
 /* Mamie Gio's sayings (Giovanna's own words): "we throw nothing away", "to save money". Shown now and then, not every time. */
 const gio = (said, p=1) => Math.random() < p ? said + " " : "";
@@ -1283,7 +1289,7 @@ document.addEventListener("click", async e => {
   if (b.dataset.tab) { window.scrollTo(0,0); return showTab(b.dataset.tab); }
   if (b.dataset.filter) { if (searchOpen) { searchOpen = false; q = ""; $("#q").value = ""; } zoneFilter = b.dataset.filter; try { localStorage.setItem("frigo.zone", zoneFilter); } catch {}
     render(); const f=$("#filters"); if (f.getBoundingClientRect().top <= 1) window.scrollTo(0, f.offsetTop - 10 + 1); return; }
-  if (b.dataset.used) { const it=find(b.dataset.used); const next=usedOne(it);
+  if (b.dataset.used) { const it=find(b.dataset.used); const next=usedOne(it); track("produit-fini");
     if (next.status==="shop") tickThen(it.id, async () => { await put(next); toast(`${gio("Un si butta via nulla !", .4)}${it.name} → courses`, [it]); });
     else { await put(next); toast(`${it.name} : ${next.qty} restant${next.qty>1?"s":""}`, [it]); } }
   if (b.dataset.goto) return goTo(b.dataset.goto);
@@ -1295,7 +1301,7 @@ document.addEventListener("click", async e => {
     else tickThen(it.id, async () => { await put({...it, inCart:true}); $(".cartbar")?.classList.add("pop"); toast(`Dans le panier : ${it.name} ✓`, null, 1600); }); }
   if (b.id==="cart-toggle") { cartOpen = !cartOpen; const bar = b.closest(".cartbar"); bar.classList.toggle("open", cartOpen); $("#cartbar-body").hidden = !cartOpen; b.setAttribute("aria-expanded", cartOpen); return; }
   if (b.id==="cart-done") { const cart = items.filter(i=>i.status==="shop" && i.inCart); if (!cart.length) return;
-    cartOpen = false;
+    cartOpen = false; track("courses-rangees", { produits: cart.length });
     for (const it of cart) await rebuy(it);
     toast(`${gio("Per risparmià !")}${cart.length} produit${cart.length>1?"s":""} rangé${cart.length>1?"s":""} dans le stock`, cart); }
   if (b.id==="clear-ex") { const ex = items.filter(i=>i.example); for (const it of ex) await remove(it.id); toast(`${ex.length} exemples effacés`, ex); }
@@ -1369,7 +1375,7 @@ $("#sheet").addEventListener("submit", async e => {
   const conf = $("#add-conf").checked && $("#add-zone").value!=="autre";
   if (tab==="shop") await put({id:newId(), name, zone:$("#add-zone").value, confort:conf, expires:null, dateType:null, status:"shop"});
   else await addToStock([{name, zone:$("#add-zone").value, confort:conf, expires:$("#add-zone").value==="autre" ? null : ($("#add-date").value||null), qty:+$("#add-qty").value||1}]);
-  $("#add-name").value=""; $("#add-date").value=""; $("#add-qty").value="1"; closeSheet(); toast(`${name} ajouté`);
+  $("#add-name").value=""; $("#add-date").value=""; $("#add-qty").value="1"; closeSheet(); toast(`${name} ajouté`); track("ajout-manuel");
 });
 
 /* An incoming product that matches something on the shopping list goes back to stock (same doc). */
@@ -1613,11 +1619,12 @@ async function scan(file){
       .sort((a,b) => (b.unsure - a.unsure) || (a.dup ? 1 : 0) - (b.dup ? 1 : 0)); // to check first, already known last
     const dups = draft.filter(d=>d.dup).length;
     if (draft.length) stage(3, `${draft.length} produit${draft.length>1?"s":""} trouvé${draft.length>1?"s":""}`, kind + (dups ? `${dups} déjà dans ton stock, décoché${dups>1?"s":""}. ` : "") + "Vérifie la liste juste en dessous. Les dates sont des estimations.", {done:true});
-    else stage(2, "Aucun produit trouvé", "Essaie une photo plus nette, ticket bien à plat et en entier.", {err:true});
+    else track("scan-vide", { mode: scanMode }), stage(2, "Aucun produit trouvé", "Essaie une photo plus nette, ticket bien à plat et en entier.", {err:true});
     renderReview();
   } catch (e) {
     const c = e?.code;
     if (c==="cancelled") return scanIdle("Lecture arrêtée.");
+    track("scan-erreur", { mode: scanMode, code: String(c || "inconnu") });
     stage(2, "La lecture n'a pas marché",
       c==="not_granted" || c==="sampling_disabled" ? "Claude n'est pas autorisé sur cette page, le scan est désactivé." :
       c==="not_granted" || c==="sampling_disabled" ? "Claude n'est pas autorisé sur cette page, le scan est désactivé." :
@@ -1695,7 +1702,7 @@ async function commit(){
   $("#commit").disabled = true;
   try {
     const back = await addToStock(keep.map(d=>({name:d.name.trim(), zone:d.zone, confort:!!d.confort && d.zone!=="autre", expires:d.expires||null, dateType:d.dateType, qty:+d.qty||1})));
-    toast(`${keep.length} ajoutés${back.length?` · ${back.length} retirés des courses`:""}`);
+    toast(`${keep.length} ajoutés${back.length?` · ${back.length} retirés des courses`:""}`); track("scan-valide", { mode: scanMode, produits: keep.length });
     scanIdle(); showTab("stock");
   } catch { $("#commit").disabled=false; toast("Ajout impossible, réessaie"); }
 }
@@ -1892,9 +1899,9 @@ function obFit(){
 addEventListener("resize", () => { if (!$("#ob").hidden) obFit(); });
 function obOpen(){ obLast = document.activeElement; obI = 0; $("#ob").hidden = false; obFit(); document.body.style.overflow = "hidden"; $("#ob-next").focus(); }
 function obClose(){ $("#ob").hidden = true; document.body.style.overflow = ""; try { localStorage.setItem("frigo.onboarded","1"); } catch {} obLast?.focus?.(); maybeSwipeHint(); }
-$("#ob-next").addEventListener("click", () => { if (obI===OB.length-1) obClose(); else { obI++; obPaint(); } });
+$("#ob-next").addEventListener("click", () => { if (obI===OB.length-1) { track("onboarding-termine"); obClose(); } else { obI++; obPaint(); } });
 $("#ob-prev").addEventListener("click", () => { if (obI>0) { obI--; obPaint(); } });
-$("#ob-skip").addEventListener("click", obClose);
+$("#ob-skip").addEventListener("click", () => { track("onboarding-passe", { etape: obI+1 }); obClose(); });
 $("#ob").addEventListener("click", e => { if (e.target.id==="ob") obClose(); });
 document.addEventListener("keydown", e => {
   if ($("#ob").hidden) return;
@@ -1923,7 +1930,7 @@ function kOpen(a){
 { const h = $("#nav-more"); h.addEventListener("click", e => { e.stopPropagation(); kOpen(h); }); }
 $("#kmenu").addEventListener("click", e => {
   const b = e.target.closest("button[data-k]"); if (!b) return; e.stopPropagation();
-  if (b.getAttribute("aria-disabled")==="true") return;
+  if (b.getAttribute("aria-disabled")==="true") { if (b.dataset.k==="recipes") track("recettes-bientot"); return; }
   const k = b.dataset.k;
   if (k==="theme") { const next = isDark() ? "light" : "dark"; document.documentElement.dataset.theme = next; try { localStorage.setItem("frigo.theme", next); } catch {} paintThemeBtns(); kPaint(); return; }
   kClose();
@@ -1949,7 +1956,7 @@ if (!obSeen) obOpen();
 /* ---------- feedback: a prefilled e-mail, with "copy" as a fallback when mail links don't open ---------- */
 const FB_TO = "chris.depaola.toru@gmail.com";
 let fbPrev = "stock";
-function openFeedback(){ if (tab!=="feedback") fbPrev = tab; window.scrollTo(0,0); showTab("feedback"); fbUpdate(); }
+function openFeedback(){ track("avis-ouvert"); if (tab!=="feedback") fbPrev = tab; window.scrollTo(0,0); showTab("feedback"); fbUpdate(); }
 function fbPicked(g){ return [...document.querySelectorAll(`#view-feedback [data-g="${g}"] [aria-pressed="true"]`)].map(b => b.textContent.trim()); }
 function fbText(){
   const name = $("#fb-name").value.trim(), mood = fbPicked("mood"), facts = fbPicked("facts"), msg = $("#fb-msg").value.trim(), idea = $("#fb-idea").value.trim();
@@ -1968,7 +1975,7 @@ $("#view-feedback").addEventListener("click", async e => {
   }
   if (e.target.closest("#fb-sup")) return openSupport();
   if (e.target.closest("#fb-back")) { window.scrollTo(0,0); showTab(fbPrev && fbPrev!=="feedback" ? fbPrev : "stock"); return; }
-  if (e.target.closest("#fb-send")) { fbUpdate(); toast("Ton app mail s'ouvre avec le message"); return; }
+  if (e.target.closest("#fb-send")) { fbUpdate(); track("avis-envoye"); toast("Ton app mail s'ouvre avec le message"); return; }
   if (e.target.closest("#fb-copy")) {
     const t = fbText(), all = `À : ${FB_TO}\nObjet : ${t.subject}\n\n${t.body}`;
     try { await navigator.clipboard.writeText(all); toast("Message copié, colle-le dans un mail ou un SMS"); }
@@ -1979,7 +1986,8 @@ $("#view-feedback").addEventListener("input", fbUpdate);
 
 /* ---------- support page: link to the Ko-fi page ---------- */
 let supPrev = "stock";
-function openSupport(){ if (tab!=="support") supPrev = tab; window.scrollTo(0,0); showTab("support"); }
+function openSupport(){ track("soutien-ouvert"); if (tab!=="support") supPrev = tab; window.scrollTo(0,0); showTab("support"); }
+$("#sup-go").addEventListener("click", () => track("kofi-clic"));
 $("#sup-back").addEventListener("click", () => { window.scrollTo(0,0); showTab(supPrev && supPrev!=="support" ? supPrev : "stock"); });
 
 /* ---------- custom date picker: the phone's native one doesn't open inside the app ---------- */
