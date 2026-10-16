@@ -2,10 +2,16 @@
    Il garde la clé API secrète (variable ANTHROPIC_API_KEY du Worker)
    et n'accepte que les demandes venant de l'adresse de l'appli (variable ALLOWED_ORIGINS).
 
-   L'appli envoie : POST { prompt: "...", image?: "<jpeg en base64>" }
+   L'appli envoie : POST { prompt: "...", task?: "scan" | "recipes", image?: "<jpeg en base64>" }
    Le serveur répond : { text: "..." }  ou  { error: "code", message: "..." } */
 
-const MODEL = "claude-opus-5-5";
+/* Le modèle est choisi ici, par tâche : l'appli ne peut pas en demander un autre.
+   Scan (ticket, photo du frigo) : Opus, plus fiable sur les abréviations et les photos.
+   Recettes : Haiku, environ 40 fois moins cher, suffisant pour des idées de plats. */
+const TASKS = {
+  scan:    { model: "claude-opus-5-5",  effort: "medium", fallbacks: true },
+  recipes: { model: "claude-haiku-5-5", effort: "low",    fallbacks: false },
+};
 const MAX_PROMPT = 20000;            // caractères
 const MAX_IMAGE = 5 * 1024 * 1024;   // octets de base64 (~3,7 Mo d'image)
 
@@ -31,6 +37,7 @@ export default {
     try { body = await request.json(); } catch { return reply(400, { error: "json", message: "Requête illisible" }); }
     const prompt = typeof body.prompt === "string" ? body.prompt : "";
     const image = typeof body.image === "string" ? body.image : "";
+    const task = TASKS[body.task] || TASKS.scan;
     if (!prompt || prompt.length > MAX_PROMPT) return reply(400, { error: "prompt", message: "Demande vide ou trop longue" });
     if (image.length > MAX_IMAGE) return reply(413, { error: "image", message: "Photo trop lourde" });
 
@@ -46,13 +53,13 @@ export default {
           "Content-Type": "application/json",
           "x-api-key": env.ANTHROPIC_API_KEY,
           "anthropic-version": "2023-06-01",
-          "anthropic-beta": "server-side-fallback-2026-07-01",
+          ...(task.fallbacks ? { "anthropic-beta": "server-side-fallback-2026-07-01" } : {}),
         },
         body: JSON.stringify({
-          model: MODEL,
+          model: task.model,
           max_tokens: 16000,
-          output_config: { effort: "medium" },
-          fallbacks: "default",
+          output_config: { effort: task.effort },
+          ...(task.fallbacks ? { fallbacks: "default" } : {}),
           messages: [{ role: "user", content }],
         }),
       });
@@ -69,6 +76,6 @@ export default {
 
     const text = (data.content || []).filter(b => b.type === "text").map(b => b.text).join("");
     if (!text.trim()) return reply(502, { error: "empty_completion", message: "Réponse vide" });
-    return reply(200, { text, truncated: data.stop_reason === "max_tokens" });
+    return reply(200, { text, truncated: data.stop_reason === "max_tokens", model: data.model, usage: data.usage });
   },
 };

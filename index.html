@@ -40,7 +40,7 @@ if (!window.claude && window.FRIGO_API) (() => {
     let res;
     try {
       res = await fetch(window.FRIGO_API, { method: "POST", signal: opts.signal, headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt: String(prompt), image: imgs[0] ? await toB64(imgs[0]) : undefined }) });
+        body: JSON.stringify({ prompt: String(prompt), task: opts.modelTier === "quick" ? "recipes" : "scan", image: imgs[0] ? await toB64(imgs[0]) : undefined }) });
     } catch (e) { throw { code: e?.name === "AbortError" ? "cancelled" : "upstream_error", message: "Pas de connexion" }; }
     const data = await res.json().catch(() => ({}));
     if (!res.ok) throw { code: data.error === "rate_limited" ? "rate_limited" : data.error === "refused" ? "refused" : data.error === "image" ? "image_rejected" : "upstream_error", message: data.message || "Erreur" };
@@ -363,6 +363,9 @@ h1{font-family:var(--font-display);font-weight:800;font-size:2.3rem;letter-spaci
 .rtools .linkbtn{padding:8px 14px}
 #r-status:empty{display:none}
 .recipes{display:flex;flex-direction:column;gap:14px}
+.r-start{display:flex;flex-direction:column;gap:14px;align-items:flex-start;background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:20px}
+.r-stale{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;background:var(--yellow-bg);color:var(--ink);border-radius:16px;padding:10px 10px 10px 16px;font-size:.92rem;font-weight:600}
+.r-stale .btn{min-height:40px;padding:8px 16px;font-size:.9rem;background:var(--surface);color:var(--ink)}
 .rcard{border-radius:26px;padding:18px 20px;display:flex;flex-direction:column;gap:10px;background:var(--rc-bg);color:var(--ink)}
 .rcard.c0{--rc-bg:linear-gradient(125deg,var(--hero-a),var(--hero-c))}
 .rcard.c1{--rc-bg:linear-gradient(125deg,var(--calm-a),var(--calm-b))}
@@ -1657,14 +1660,10 @@ $("#r-quick").addEventListener("click", () => setPref("quick"));
 $("#r-more").addEventListener("click", () => { rSeen = [...rSeen, ...(rCache?.list||[]).map(r=>r.title)].slice(-16); generateRecipes(true); });
 
 /* Called on every render and when the tab opens: refresh only if the stock changed, after a short pause. */
-function recipesMaybe(now){
+/* Recipes are generated only when the viewer asks (each generation costs an API call). */
+function recipesMaybe(){
   if (tab !== "recipes") return;
   drawRecipes();
-  if (!dataReady) return;
-  if (!stockNow().length) return;
-  if (rCache && rCache.sig === rSig()) return;
-  clearTimeout(rTimer);
-  rTimer = setTimeout(() => generateRecipes(false), now ? 0 : 1200);
 }
 
 function recipePrompt(n, exclude){
@@ -1739,11 +1738,16 @@ function drawRecipes(){
   $("#r-more").hidden = true;
   if (!stock.length) { box.innerHTML = `<p class="empty"><strong>Ton stock est vide.</strong><br>Ajoute des produits ou scanne un ticket : les idées de recettes apparaîtront ici.</p>`; return; }
   const stale = rCache && rCache.sig !== rSig();
-  if (rBusy) $("#r-status").textContent = rCache ? "Ton stock a changé, je mets les idées à jour…" : "Je cherche des idées avec ce que tu as…";
-  if (!rCache?.list?.length) { box.innerHTML = rBusy ? `<div class="rskel"></div><div class="rskel"></div><div class="rskel"></div>` : ""; return; }
+  if (rBusy) $("#r-status").textContent = "Je cherche des idées avec ce que tu as…";
+  if (!rCache?.list?.length) {
+    box.innerHTML = rBusy ? `<div class="rskel"></div><div class="rskel"></div><div class="rskel"></div>`
+      : `<div class="r-start"><p class="empty"><strong>Des idées de plats avec ce que tu as.</strong><br>En commençant par ce qui périme en premier.</p><button class="btn green" data-rgen type="button">Proposer des recettes</button></div>`;
+    return;
+  }
   $("#r-more").hidden = rBusy;
   const byId = Object.fromEntries(items.map(i=>[i.id,i]));
-  box.innerHTML = rCache.list.map((r,k) => {
+  const staleBar = stale && !rBusy ? `<div class="r-stale"><span>Ton stock a changé depuis ces idées.</span><button class="btn plain" data-rgen type="button">Actualiser</button></div>` : "";
+  box.innerHTML = staleBar + rCache.list.map((r,k) => {
     const used = r.uses.map(id=>byId[id]).filter(i=>i && i.status!=="shop");
     const loading = rOne.has(k);
     return `<article class="rcard c${k%4} ${loading?"loading":""}" style="${rBusy||stale?"opacity:.6":""}" aria-busy="${loading}">
@@ -1768,6 +1772,7 @@ function drawRecipes(){
 document.addEventListener("click", async e => {
   const b = e.target.closest("button"); if (!b) return;
   if (b.dataset.again) return regenerateOne(+b.dataset.again);
+  if ("rgen" in b.dataset) return generateRecipes(true);
   if (b.dataset.cook) { $("#cook-"+b.dataset.cook).hidden = false; b.hidden = true; }
   if (b.dataset.cookno) { $("#cook-"+b.dataset.cookno).hidden = true; $(`[data-cook="${b.dataset.cookno}"]`).hidden = false; }
   if (b.dataset.cookok) {
