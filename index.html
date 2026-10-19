@@ -1377,12 +1377,13 @@ const gio = (said, p=1) => Math.random() < p ? said + " " : "";
 function toast(msg, undo, ms){
   const el = $("#toast"); el.innerHTML = ""; el.hidden = false;
   const t = document.createElement("span"); t.textContent = msg; el.append(t);
-  if (undo?.length) {
+  const canUndo = typeof undo==="function" || !!undo?.length; // a function undoes several changes at once
+  if (canUndo) {
     const b = document.createElement("button"); b.type = "button"; b.className = "undo"; b.textContent = "Annuler";
     b.onclick = async () => { el.hidden = true; clearTimeout(toastT); if (typeof undo==="function") await undo(); else for (const it of undo) await put(it); };
     el.append(b);
   }
-  clearTimeout(toastT); toastT = setTimeout(()=>el.hidden=true, ms || (undo?.length ? 6000 : 3200));
+  clearTimeout(toastT); toastT = setTimeout(()=>el.hidden=true, ms || (canUndo ? 6000 : 3200));
 }
 
 /* From the summary card: show the item in the stock list and make it blink. */
@@ -1462,7 +1463,7 @@ document.addEventListener("click", async e => {
     else { await put(next); toast(`${it.name} : ${next.qty} restant${next.qty>1?"s":""}`, [it]); } }
   if (b.dataset.open) { const it=find(b.dataset.open); if (!it) return; const q=qtyOf(it);
     if (q > 1) { // open one of several: it becomes its own line
-      const one = openItem({...it, id:newId(), qty:1, qtyFull:1, openedPart:true}); await put({...it, qty:q-1}); await put(one);
+      const one = openItem({...it, id:newId(), qty:1, qtyFull:1, openedPart:true, splitFrom:it.id}); await put({...it, qty:q-1}); await put(one);
       toast(`${it.name} : 1 ouvert, bon ${one.openDays} jours (repère)`, async () => { await remove(one.id); await put(it); });
     } else { const next = openItem(it); await put(next); toast(`Ouvert : bon ${next.openDays} jours (repère)`, [it]); }
     track("produit-ouvert"); return; }
@@ -1516,7 +1517,17 @@ $("#add-zone").addEventListener("change", () => { const a = $("#add-zone").value
 function closeEdit(){ editId = null; $("#edit-sheet").hidden = true; if ($("#sheet").hidden && $("#fab-menu").hidden) $("#scrim").hidden = true; }
 $("#ed-date").addEventListener("input", () => { paintQuick(); paintEdZone(); });
 $("#ed-cancel").addEventListener("click", closeEdit);
-$("#ed-unopen").addEventListener("click", async () => { const it = items.find(x=>x.id===editId); if (!it) return closeEdit(); closeEdit(); await put(closeItem(it)); toast(`${it.name} : pas encore ouvert`, [it]); });
+$("#ed-unopen").addEventListener("click", async () => {
+  const it = items.find(x=>x.id===editId); if (!it) return closeEdit(); closeEdit();
+  // one of several that was opened apart: put it back with the others
+  const home = it.openedPart && (items.find(x => x.id===it.splitFrom && x.status!=="shop" && !x.openedAt)
+    || items.find(x => x.id!==it.id && x.status!=="shop" && !x.openedAt && norm(x.name)===norm(it.name)));
+  if (home) {
+    const q = qtyOf(home) + 1;
+    await put({...home, qty:q, qtyFull: Math.max(home.qtyFull||1, q)}); await remove(it.id);
+    toast(`${it.name} : pas encore ouvert, remis avec les autres`, async () => { await put(home); await put(it); });
+  } else { await put(closeItem(it)); toast(`${it.name} : pas encore ouvert`, [it]); }
+});
 $("#edit-sheet").addEventListener("submit", async e => {
   e.preventDefault();
   const it = items.find(x=>x.id===editId); if (!it) return closeEdit();
