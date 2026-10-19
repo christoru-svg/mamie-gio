@@ -1,6 +1,6 @@
-# Mamie Gio
+# Pense-Frigo
 
-Ton frigo, sans l'ouvrir. Mamie Gio se souvient à ta place de ce que tu as chez toi, ce qui va bientôt périmer, et ce qu'il faut racheter.
+Bon jusqu'au bout. Pense-Frigo se souvient à ta place de ce que tu as chez toi, ce qui va bientôt périmer, et ce qu'il faut racheter.
 
 Application web installable (PWA), sans serveur : tout est enregistré dans le navigateur du téléphone.
 

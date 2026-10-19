@@ -1,7 +1,7 @@
 {
-  "name": "Mamie Gio",
-  "short_name": "Mamie Gio",
-  "description": "Mamie Gio, ton frigo sans l'ouvrir : stock, dates de péremption et liste de courses.",
+  "name": "Pense-Frigo",
+  "short_name": "Pense-Frigo",
+  "description": "Pense-Frigo, bon jusqu'au bout : stock, dates de péremption et liste de courses.",
   "lang": "fr",
   "start_url": "./",
   "scope": "./",

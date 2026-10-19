@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Mamie Gio</title>
-<meta name="description" content="Mamie Gio, ton frigo sans l'ouvrir : stock, dates de péremption et liste de courses.">
+<title>Pense-Frigo</title>
+<meta name="description" content="Pense-Frigo, bon jusqu'au bout : stock, dates de péremption et liste de courses.">
 <meta name="theme-color" content="#fafaf8" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#121212" media="(prefers-color-scheme: dark)">
 <link rel="manifest" href="manifest.webmanifest">
@@ -14,7 +14,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a711d923-d3d0-4465-aa46-66d76f3728b6"></script>
-<meta name="apple-mobile-web-app-title" content="Mamie Gio">
+<meta name="apple-mobile-web-app-title" content="Pense-Frigo">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap">
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}</style>
@@ -325,6 +325,14 @@ h1{font-family:var(--font-display);font-weight:800;font-size:2.3rem;letter-spaci
 .install-tip .it-how{color:var(--ink);font-size:.92rem}
 .it-act{display:flex;gap:16px}
 .install-tip .linkbtn{color:var(--blue-fg);padding:4px 0;min-height:36px}
+/* opened products */
+.u-open{background:transparent;color:var(--lilac-fg);border:1.5px dashed var(--lilac-fg)}
+.lvl{background:var(--lilac-bg);color:var(--lilac-fg);font-weight:600;gap:6px}
+.lvl .lv-i{font-size:.62rem;letter-spacing:1px}
+.opened-on{color:var(--lilac-fg);font-weight:600}
+.ed-open{display:flex;flex-direction:column;gap:8px;background:var(--lilac-bg);border-radius:16px;padding:12px 14px}
+.ed-open p{margin:0;font-size:.9rem;color:var(--ink)}
+.ed-open .danger-link{color:var(--lilac-fg);padding:4px 0}
 .sup-card{background:linear-gradient(135deg,var(--yellow-bg),var(--surface));border:1px solid var(--line);border-radius:24px;padding:22px;display:flex;flex-direction:column;gap:12px}
 .sup-card p{margin:0;line-height:1.5}
 .sup-art{font-size:48px;line-height:1}
@@ -625,7 +633,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
   </header>
   <div class="search" id="search" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg><input id="q" type="search" placeholder="Rechercher dans tout le stock" autocomplete="off" enterkeyhint="search" aria-label="Rechercher dans tout le stock"><button id="q-clear" type="button" aria-label="Fermer la recherche">✕</button></div>
   <div class="install-tip" id="install-tip" hidden>
-    <p><b>Installe Mamie Gio sur ton écran d'accueil</b> pour ne pas perdre ton stock.</p>
+    <p><b>Installe Pense-Frigo sur ton écran d'accueil</b> pour ne pas perdre ton stock.</p>
     <p class="it-how" id="it-how" hidden></p>
     <div class="it-act"><button class="linkbtn" id="it-show" type="button">Comment ?</button><button class="linkbtn" id="it-close" type="button">Plus tard</button></div>
   </div>
@@ -806,7 +814,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
   </header>
   <section class="sup-card">
     <div class="sup-art" aria-hidden="true">☕</div>
-    <p>Mamie Gio, ton frigo sans l'ouvrir, est gratuite et sans pub. Je l'ai créée pour gaspiller moins, dépenser moins et avoir une chose de moins à retenir.</p>
+    <p>Pense-Frigo est gratuite et sans pub. Je l'ai créée pour gaspiller moins, dépenser moins et avoir une chose de moins à retenir.</p>
     <p class="sup-l">Tes dons paient l’API pour le scan et les futures recettes ☕</p>
     <a class="btn green" id="sup-go" href="https://ko-fi.com/christorusvg" target="_blank" rel="noopener">Offrir un café sur Ko-fi</a>
     <p class="sup-h">Tu arriveras sur ma page personnelle Ko-fi. Tester l'app et donner ton avis m'aide déjà beaucoup : le don est vraiment facultatif.</p>
@@ -952,6 +960,11 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
   </div>
   <label class="chk" id="ed-conf-l"><input type="checkbox" id="ed-conf"> C'est de la comfort food</label>
   <p class="ed-note" id="ed-autre-note" hidden>Les produits « Autre » n'ont pas de date. Elle est masquée mais conservée si tu changes d'avis.</p>
+  <div class="ed-open" id="ed-open" hidden>
+    <p id="ed-open-txt"></p>
+    <label>Bon combien de jours après ouverture ?<input id="ed-open-days" type="number" min="1" max="365" inputmode="numeric"></label>
+    <button class="danger-link" type="button" id="ed-unopen">Pas encore ouvert</button>
+  </div>
   <label>Date de péremption<input id="ed-date" type="date"></label>
   <label>Type de date<select id="ed-type"><option value="">Non précisé</option><option value="DLC">À consommer jusqu'au (produit frais)</option><option value="DDM">À consommer de préférence avant</option></select></label>
   <div class="actions"><button class="btn green" type="submit">Enregistrer</button><button class="btn plain" type="button" id="ed-cancel">Annuler</button></div>
@@ -1124,6 +1137,34 @@ const byDate = (a,b) => (a.expires||"9999") < (b.expires||"9999") ? -1 : (a.expi
 const fmtDate = iso => iso ? new Date(iso+"T12:00:00").toLocaleDateString("fr-FR",{day:"numeric",month:"short"}) : "";
 
 const qtyOf = i => Math.max(1, parseInt(i.qty)||1);
+
+/* ---------- opened products: "J'ai ouvert" shortens the date, then the level says how much is left ----------
+   Durations are rough guides for an opened product kept in the fridge (the packaging prevails), editable per product. */
+const OPEN_DAYS = [
+  [/saucisson|chorizo|salami/i, 14], [/jambon|lardon|bacon|blanc de (poulet|dinde)|charcut|rôti/i, 3], [/saumon|poisson|surimi|crevette|thon frais/i, 2],
+  [/ketchup|mayo|moutarde|vinaigrette|cornichon|câpre/i, 30], [/confiture|miel|pâte à tartiner|sirop/i, 30], [/beurre|margarine/i, 21],
+  [/râpé|mozza|ricotta|mascarpone|feta|burrata/i, 4], [/fromage blanc|faisselle|skyr|yaourt|yogourt|dessert|compote|petit[- ]suisse/i, 3],
+  [/fromage|comté|emmental|gruyère|brie|camembert|chèvre|raclette|roquefort|parmesan/i, 7],
+  [/crème/i, 4], [/lait|boisson|soja|avoine|amande|riz au lait/i, 4], [/jus|smoothie/i, 5],
+  [/houmous|tzatziki|guacamole|tarama|tapenade/i, 4], [/pesto|sauce|coulis|purée de tomate|concentré/i, 5],
+  [/soupe|gaspacho|velouté|bouillon/i, 3], [/tofu|tempeh|seitan/i, 4], [/conserve|haricot|pois chiche|lentille|maïs|olive/i, 3],
+  [/vin|cidre|bière/i, 4], [/pâte (feuilletée|brisée|sablée|à pizza)/i, 2], [/œuf|oeuf/i, 2],
+];
+const openDaysFor = name => (OPEN_DAYS.find(([re]) => re.test(name)) || [0, 4])[1];
+const LEVELS = {full:"Plein", half:"Moitié", low:"Presque fini"};
+const NEXT_LEVEL = {full:"half", half:"low", low:"full"};
+const LEVEL_ICON = {full:"●●●", half:"●●○", low:"●○○"};
+const canOpen = i => (i.zone||"frigo")==="frigo" && i.status!=="shop";
+const earliest = (a, b) => !a ? b : !b ? a : (a < b ? a : b);
+/* the shorter of the printed date and "opened + n days"; the sealed values are kept to undo or change n */
+function openItem(it, days = openDaysFor(it.name), on = todayISO()){
+  const sealed = it.sealed || {expires: it.expires || null, dateType: it.dateType || null};
+  return {...it, openedAt:on, openDays:days, sealed, expires: earliest(sealed.expires, addDaysFrom(on, days)), dateType:"DLC", level: it.level || "full"};
+}
+function closeItem(it){
+  const {openedAt, openDays, sealed, level, ...rest} = it;
+  return {...rest, expires: sealed ? sealed.expires : it.expires, dateType: sealed ? sealed.dateType : it.dateType};
+}
 /* The round button: shows how many are left; with one left it ticks and sends the item to the shopping list. */
 function checkBtn(i, extra=""){
   const q = qtyOf(i);
@@ -1134,7 +1175,7 @@ function checkBtn(i, extra=""){
 /* Use one unit: decrement, or move to the shopping list (refilled to the bought quantity) when it was the last. */
 function usedOne(it){
   const q = qtyOf(it);
-  return q > 1 ? {...it, qty:q-1} : {...it, status:"shop", qty: it.qtyFull || 1};
+  return q > 1 ? {...it, qty:q-1} : {...closeItem(it), status:"shop", qty: it.qtyFull || 1}; // bought again = sealed again
 }
 
 function stockRow(i){
@@ -1146,7 +1187,9 @@ function stockRow(i){
         ${i.zone==="autre" ? "" : `<button class="pill pillbtn ${d.cls}" data-edit="${i.id}" type="button" aria-label="${i.expires?"Changer la date de":"Ajouter une date à"} ${esc(i.name)}">${i.expires ? d.txt : "+ Ajouter une date"}</button>`}
         ${i.confort?`<span class="ctag">Comfort</span>`:""}
         ${zoneFilter==="confort" && !q?`<span><span class="dot d-${i.zone||"frigo"}"></span> ${ZONES[i.zone]||"Frigo"}</span>`:""}
-        ${i.dateType && i.zone!=="autre"?`<span title="${i.dateType==="DLC"?"À consommer jusqu'au (date limite)":"À consommer de préférence avant"}">${i.dateType==="DLC"?"à consommer jusqu'au":"à consommer de préférence"}</span>`:""}
+        ${i.openedAt ? `<button class="pill pillbtn lvl" data-level="${i.id}" type="button" aria-label="${esc(i.name)} : ${LEVELS[i.level||"full"].toLowerCase()}, toucher pour changer la quantité restante"><span class="lv-i" aria-hidden="true">${LEVEL_ICON[i.level||"full"]}</span>${LEVELS[i.level||"full"]}</button><span class="opened-on">ouvert ${fmtDate(i.openedAt)===fmtDate(todayISO()) ? "aujourd'hui" : "le "+fmtDate(i.openedAt)}</span>`
+          : canOpen(i) ? `<button class="pill pillbtn u-open" data-open="${i.id}" type="button" aria-label="J'ai ouvert ${esc(i.name)}">J'ai ouvert</button>` : ""}
+        ${!i.openedAt && i.dateType && i.zone!=="autre"?`<span title="${i.dateType==="DLC"?"À consommer jusqu'au (date limite)":"À consommer de préférence avant"}">${i.dateType==="DLC"?"à consommer jusqu'au":"à consommer de préférence"}</span>`:""}
         ${qtyOf(i)>1?`<span class="left-n">${qtyOf(i)} restants</span>`:""}
         ${i.example?`<span>exemple</span>`:""}
       </div></div>
@@ -1328,7 +1371,7 @@ function micStop(){ try { rec?.abort(); } catch {} rec = null; $("#add-mic").set
 }
 
 let toastT;
-/* Mamie Gio's sayings (Giovanna's own words): "we throw nothing away", "to save money". Shown now and then, not every time. */
+/* Giovanna's sayings (Giovanna's own words): "we throw nothing away", "to save money". Shown now and then, not every time. */
 const gio = (said, p=1) => Math.random() < p ? said + " " : "";
 /* undo: list of item snapshots to write back (a deleted item is recreated from its snapshot) */
 function toast(msg, undo, ms){
@@ -1413,8 +1456,19 @@ document.addEventListener("click", async e => {
   if (b.dataset.filter) { if (searchOpen) { searchOpen = false; q = ""; $("#q").value = ""; } zoneFilter = b.dataset.filter; try { localStorage.setItem("frigo.zone", zoneFilter); } catch {}
     render(); const f=$("#filters"); if (f.getBoundingClientRect().top <= 1) window.scrollTo(0, f.offsetTop - 10 + 1); return; }
   if (b.dataset.used) { const it=find(b.dataset.used); const next=usedOne(it); track("produit-fini");
+    if (it.openedPart && items.some(x => x.id!==it.id && x.status!=="shop" && norm(x.name)===norm(it.name))) { // the opened one is done, the rest are still there
+      return tickThen(it.id, async () => { await remove(it.id); toast(`${it.name} ouvert : fini`, [it]); }); }
     if (next.status==="shop") tickThen(it.id, async () => { await put(next); toast(`${gio("Un si butta via nulla !", .4)}${it.name} → courses`, [it]); });
     else { await put(next); toast(`${it.name} : ${next.qty} restant${next.qty>1?"s":""}`, [it]); } }
+  if (b.dataset.open) { const it=find(b.dataset.open); if (!it) return; const q=qtyOf(it);
+    if (q > 1) { // open one of several: it becomes its own line
+      const one = openItem({...it, id:newId(), qty:1, qtyFull:1, openedPart:true}); await put({...it, qty:q-1}); await put(one);
+      toast(`${it.name} : 1 ouvert, bon ${one.openDays} jours (repère)`, async () => { await remove(one.id); await put(it); });
+    } else { const next = openItem(it); await put(next); toast(`Ouvert : bon ${next.openDays} jours (repère)`, [it]); }
+    track("produit-ouvert"); return; }
+  if (b.dataset.level) { const it=find(b.dataset.level); if (!it) return; const lv = NEXT_LEVEL[it.level||"full"];
+    await put({...it, level:lv}); track("niveau", {niveau:lv});
+    if (lv==="low") toast(`${it.name} : presque fini. Pense à en racheter`, null, 2600); return; }
   if (b.dataset.goto) return goTo(b.dataset.goto);
   if (b.dataset.drop) { const it=find(b.dataset.drop); await remove(it.id); toast(`${it.name} retiré des courses`, [it]); }
   if (b.dataset.trash) { const it=find(b.dataset.trash); if (!it) return; const shop = it.status==="shop";
@@ -1446,6 +1500,8 @@ function openEdit(id){
   editId = id;
   $("#ed-name").value = it.name; $("#ed-zone").value = it.zone || "frigo"; $("#ed-conf").checked = !!it.confort;
   $("#ed-qty").value = qtyOf(it); $("#ed-date").value = it.expires || ""; $("#ed-type").value = it.dateType || "";
+  $("#ed-open").hidden = !it.openedAt;
+  if (it.openedAt) { $("#ed-open-txt").textContent = `Ouvert le ${fmtDate(it.openedAt).replace(/\.$/,"")}. La date ci-dessous en tient compte (c'est un repère : l'emballage fait foi).`; $("#ed-open-days").value = it.openDays || openDaysFor(it.name); }
   paintQuick(); paintEdZone();
   $("#scrim").hidden = false; $("#edit-sheet").hidden = false;
 }
@@ -1460,6 +1516,7 @@ $("#add-zone").addEventListener("change", () => { const a = $("#add-zone").value
 function closeEdit(){ editId = null; $("#edit-sheet").hidden = true; if ($("#sheet").hidden && $("#fab-menu").hidden) $("#scrim").hidden = true; }
 $("#ed-date").addEventListener("input", () => { paintQuick(); paintEdZone(); });
 $("#ed-cancel").addEventListener("click", closeEdit);
+$("#ed-unopen").addEventListener("click", async () => { const it = items.find(x=>x.id===editId); if (!it) return closeEdit(); closeEdit(); await put(closeItem(it)); toast(`${it.name} : pas encore ouvert`, [it]); });
 $("#edit-sheet").addEventListener("submit", async e => {
   e.preventDefault();
   const it = items.find(x=>x.id===editId); if (!it) return closeEdit();
@@ -1468,6 +1525,9 @@ $("#edit-sheet").addEventListener("submit", async e => {
     expires: $("#ed-date").value || null, dateType: $("#ed-type").value || null, // kept (hidden) for "Autre"
     confort: $("#ed-zone").value!=="autre" && $("#ed-conf").checked};
   if (next.expires && !it.expires) next.addedAt = it.addedAt || todayISO();
+  if (it.openedAt) { const days = Math.max(1, parseInt($("#ed-open-days").value)||it.openDays||1);
+    if (next.expires !== it.expires) { next.sealed = {expires: next.expires, dateType: next.dateType}; next.openDays = days; }
+    else if (days !== it.openDays) Object.assign(next, openItem({...next, sealed: it.sealed}, days, it.openedAt)); }
   closeEdit(); await put(next); toast(`${next.name} modifié`, [it]);
 });
 $("#ed-delete").addEventListener("click", async () => {
@@ -1534,7 +1594,7 @@ async function exportIcs(){
       `SUMMARY:${icsEsc(`${i.dateType==="DDM"?"À consommer de préférence":"Péremption"} : ${i.name} (${ZONES[i.zone]||""})`)}`,
       "BEGIN:VALARM","TRIGGER:-PT12H","ACTION:DISPLAY",`DESCRIPTION:${icsEsc(i.name+" à manger")}`,"END:VALARM","END:VEVENT"].join("\r\n");
   });
-  const ics = ["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//Mamie Gio//FR","CALSCALE:GREGORIAN",...ev,"END:VCALENDAR"].join("\r\n");
+  const ics = ["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//Pense-Frigo//FR","CALSCALE:GREGORIAN",...ev,"END:VCALENDAR"].join("\r\n");
   const dl = await window.claude?.use?.("downloads");
   if (!dl) { // standalone app: regular file download
     const a = document.createElement("a");
@@ -1991,7 +2051,7 @@ document.addEventListener("click", e => {
 
 /* ---------- onboarding (first visit) + "?" button to replay it ---------- */
 const OB = [
-  {c:"pink", t:"Mamie Gio, ton frigo sans l'ouvrir",
+  {c:"pink", t:"Pense-Frigo, bon jusqu'au bout",
    art:`<div class="mk mk-hero"><div class="mk-h"><b>À manger en premier</b><span>2</span></div><div class="mk-r"><i></i>Crème fraîche<em>aujourd'hui</em></div><div class="mk-r"><i></i>Tofu fumé<em>demain</em></div></div>`,
    x:"Je retiens ton stock et ses dates à ta place. Ce qui périme dans les 2 jours s'affiche tout en haut du Stock, pour le manger avant de le jeter."},
   {c:"blue", t:"Ajoute tes produits",
@@ -1999,7 +2059,7 @@ const OB = [
    x:() => "Le bouton + ajoute un produit à la main" + (hasAI() ? ", ou lit ton ticket de caisse à ta place." : ". Bientôt, il pourra aussi lire ton ticket de caisse.") + " Touche une date pour la changer."},
   {c:"green", t:"Fini ? Coche-le",
    art:`<div class="mk mk-done"><div class="mk-row done"><i>✓</i><span>Lait</span></div><div class="mk-arrow" aria-hidden="true">→</div><div class="mk-chip">Courses</div></div>`,
-   x:"Le produit part dans tes Courses. Tout le reste (comfort food, mode sombre, ton avis) se trouve dans l'onglet Plus."}
+   x:"Le produit part dans tes Courses. Tu as entamé un produit du frigo ? « J'ai ouvert » raccourcit sa date. Tout le reste (comfort food, mode sombre, ton avis) se trouve dans l'onglet Plus."}
 ];
 let obI = 0, obLast = null;
 function obPaint(){
@@ -2087,7 +2147,7 @@ function fbPicked(g){ return [...document.querySelectorAll(`#view-feedback [data
 function fbText(){
   const name = $("#fb-name").value.trim(), mood = fbPicked("mood"), facts = fbPicked("facts"), msg = $("#fb-msg").value.trim();
   return {
-    subject: `Mamie Gio · avis${name ? " de " + name : ""}`,
+    subject: `Pense-Frigo · avis${name ? " de " + name : ""}`,
     body: [mood.length ? `L'app me sert : ${mood[0]}` : "", facts.length ? "Ce qui m'est arrivé :\n" + facts.map(f => "- " + f).join("\n") : "", "", msg || "(pas de message)", "", name ? `— ${name}` : ""].filter((l,i,a) => l || (i>0 && a[i-1])).join("\n").trim()
   };
 }
@@ -2122,14 +2182,14 @@ let dataPrev = "stock";
 function openData(){ track("donnees-ouvert"); if (tab!=="data") dataPrev = tab; window.scrollTo(0,0); showTab("data"); }
 $("#data-back").addEventListener("click", () => { window.scrollTo(0,0); showTab(dataPrev && dataPrev!=="data" ? dataPrev : "stock"); });
 $("#bk-save").addEventListener("click", async () => {
-  const json = JSON.stringify({ app:"Mamie Gio", version:1, date:new Date().toISOString(), confort:confDef, items }, null, 1);
-  const filename = `mamie-gio-stock-${todayISO()}.json`;
+  const json = JSON.stringify({ app:"Pense-Frigo", version:1, date:new Date().toISOString(), confort:confDef, items }, null, 1);
+  const filename = `pense-frigo-stock-${todayISO()}.json`;
   track("sauvegarde", { produits: items.length });
   const dl = await window.claude?.use?.("downloads");
   if (dl) { try { await dl.save({filename, data:json}); toast("Sauvegarde enregistrée"); } catch(err){ if (err?.code!=="cancelled") toast("Sauvegarde non enregistrée"); } return; }
   const file = new File([json], filename, {type:"application/json"});
   if (navigator.canShare?.({files:[file]})) { // phones: share sheet → "Enregistrer dans Fichiers", Drive…
-    try { await navigator.share({files:[file], title:"Sauvegarde Mamie Gio"}); return toast("Sauvegarde prête"); } catch(err){ if (err?.name==="AbortError") return; }
+    try { await navigator.share({files:[file], title:"Sauvegarde Pense-Frigo"}); return toast("Sauvegarde prête"); } catch(err){ if (err?.name==="AbortError") return; }
   }
   const a = document.createElement("a"); a.href = URL.createObjectURL(file); a.download = filename;
   document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
@@ -2139,7 +2199,7 @@ $("#bk-file").addEventListener("change", async e => {
   const f = e.target.files?.[0]; e.target.value = ""; if (!f) return;
   let back;
   try { const d = JSON.parse(await f.text()); back = (Array.isArray(d) ? d : d.items || []).filter(i => i && typeof i.name==="string" && i.name.trim()); if (!Array.isArray(d) && d.confort && !confDef) { confDef = String(d.confort); try { localStorage.setItem("frigo.confort", confDef); } catch {} } }
-  catch { return toast("Ce fichier n'est pas une sauvegarde Mamie Gio"); }
+  catch { return toast("Ce fichier n'est pas une sauvegarde Pense-Frigo"); }
   if (!back.length) return toast("Cette sauvegarde est vide");
   if (!confirm(`Ajouter les ${back.length} produit${back.length>1?"s":""} de cette sauvegarde à ton stock ? Rien ne sera effacé.`)) return;
   const restored = back.map(i => ({...i, id: typeof i.id==="string" && i.id ? i.id : newId()}));
